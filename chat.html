@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Project Chat</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h2>Project Chat</h2>
+
+<input type="number" id="projectId" placeholder="Enter Project ID">
+<button onclick="joinProject()">Join</button>
+
+<h3>Online Users</h3>
+<ul id="onlineUsers"></ul>
+
+<h3>Messages</h3>
+<div id="messages"></div>
+
+<input type="text" id="messageInput" placeholder="Type message..."
+    oninput="handleTyping()" />
+<button onclick="sendMessage()">Send</button>
+
+<p id="typingStatus"></p>
+
+<script src="app.js"></script>
+</body>
+</html>
