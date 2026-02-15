@@ -33,19 +33,25 @@ const getProjects = async (req, res) => {
         let query;
         let values = [];
 
-        // For "My Projects" view, we only want projects the user is a member of.
-        // Even if admin, if they want to see "projects where I am part of", we filter.
-        query = `
-            SELECT p.* FROM projects p
-            JOIN project_members pm ON p.id = pm.project_id
-            WHERE pm.user_id = ? AND p.is_deleted = FALSE
-        `;
-        values = [userId];
+        if (role === 'admin') {
+            // Admin sees ALL projects
+            query = `SELECT * FROM projects WHERE is_deleted = FALSE`;
+            values = [];
+        } else {
+            // Members see only their projects
+            query = `
+                SELECT p.* FROM projects p
+                JOIN project_members pm ON p.id = pm.project_id
+                WHERE pm.user_id = ? AND p.is_deleted = FALSE
+            `;
+            values = [userId];
+        }
 
         const [rows] = await db.execute(query, values);
         res.json(rows);
 
     } catch (error) {
+        console.error("getProjects error:", error);
         res.status(500).json({ message: 'Server error' });
     }
 };

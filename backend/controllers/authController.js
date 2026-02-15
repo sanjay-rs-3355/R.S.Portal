@@ -68,13 +68,13 @@ exports.login = async (req, res) => {
 
         // Generate JWT
         const token = jwt.sign(
-        {
+            {
                 id: user.id,
                 name: user.name,   // ADD THIS
                 role: user.role
             },
-                process.env.JWT_SECRET,
-                { expiresIn: "2h" }
+            process.env.JWT_SECRET,
+            { expiresIn: "2h" }
         );
 
 
@@ -96,9 +96,9 @@ exports.login = async (req, res) => {
         });
 
     } catch (error) {
-    console.error("REAL ERROR:", error);
-    res.status(500).json({ message: error.message });
-}
+        console.error("REAL ERROR:", error);
+        res.status(500).json({ message: error.message });
+    }
 
 
 };

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - R.S.Portal</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+
+    <div class="register-body">
+        <div class="glass-card">
+            <!-- Close button if needed, or back link -->
+            <a href="index.html" style="position: absolute; top: 20px; right: 25px; color: #333; font-size: 24px;"><i
+                    class="fa-solid fa-xmark"></i></a>
+
+            <div class="glass-left">
+                <div class="glass-logo">
+                    <div class="logo-icon" style="background: none; width: auto; height: auto;">
+                        <img src="assets/logo.jpg" alt="Logo" style="height: 50px;">
+                    </div>
+                    <h1>R.S.Portal</h1>
+                </div>
+
+                <h2 class="glass-title">Register</h2>
+
+                <form onsubmit="register(event)">
+                    <div class="input-group">
+                        <label class="glass-label">Full Name</label>
+                        <input type="text" id="fullname" class="glass-input" placeholder="Narendra Singh">
+                    </div>
+
+                    <div class="input-group">
+                        <label class="glass-label">E-mail</label>
+                        <input type="email" id="email" class="glass-input" placeholder="username@gmail.com">
+                    </div>
+
+                    <div class="input-group">
+                        <label class="glass-label">Password</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="password" class="glass-input" placeholder="Password">
+                            <i class="fa-regular fa-eye-slash toggle-pw"></i>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label class="glass-label">Confirm Password</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="confirm-password" class="glass-input" placeholder="Password">
+                            <i class="fa-regular fa-eye-slash toggle-pw"></i>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="glass-right">
+                <div class="avatar-section">
+                    <div class="glass-label" style="font-size: 16px; margin-bottom: 20px;">Profile Picture</div>
+
+                    <div class="main-avatar">
+                        <i class="fa-regular fa-user"></i>
+                        <button class="upload-btn">Upload Image <i class="fa-solid fa-cloud-arrow-up"></i></button>
+                        <!-- Hidden file input -->
+                        <input type="file" id="file-upload" style="display: none;">
+                    </div>
+
+                    <div class="or-divider">or</div>
+                    <div class="glass-label" style="font-size: 14px; opacity: 0.8;">select Avatar</div>
+
+                    <div class="avatar-options">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" class="avatar-option"
+                            onclick="selectAvatar(this)">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka" class="avatar-option"
+                            onclick="selectAvatar(this)">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Bob" class="avatar-option"
+                            onclick="selectAvatar(this)">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Jack" class="avatar-option"
+                            onclick="selectAvatar(this)">
+                    </div>
+                </div>
+
+                <button class="btn-primary-lg glass-btn" onclick="register(event)">Register</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Avatar Selection Logic
+        function selectAvatar(imgElement) {
+            document.querySelectorAll('.avatar-option').forEach(img => img.classList.remove('selected'));
+            imgElement.classList.add('selected');
+            // Logic to set the avatar
+        }
+
+        // Toggle Password Visibility
+        document.querySelectorAll('.toggle-pw').forEach(icon => {
+            icon.addEventListener('click', () => {
+                const input = icon.previousElementSibling;
+                if (input.type === "password") {
+                    input.type = "text";
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                } else {
+                    input.type = "password";
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
+                }
+            });
+        });
+
+        // File Upload Trigger
+        document.querySelector('.upload-btn').addEventListener('click', () => {
+            document.getElementById('file-upload').click();
+        });
+
+        async function register(event) {
+            event.preventDefault();
+
+            const fullname = document.getElementById("fullname").value;
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+            const confirmPassword = document.getElementById("confirm-password").value;
+
+            if (password !== confirmPassword) {
+                alert("Passwords do not match");
+                return;
+            }
+
+            if (!fullname || !email || !password) {
+                alert("Please fill all fields");
+                return;
+            }
+
+            // Mock registration logic
+            console.log("Registering", { fullname, email, password });
+
+            // In a real app, you'd send this to the backend
+            // await fetch('/api/auth/register', ...)
+
+            alert("Registration Successful (Simulated)");
+            window.location.href = "index.html";
+        }
+    </script>
+
+</body>
+
+</html>

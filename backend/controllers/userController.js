@@ -20,6 +20,19 @@ const suspendUser = async (req, res) => {
     }
 };
 
+// 0️⃣ Get All Users (Admin only)
+const getAllUsers = async (req, res) => {
+    try {
+        const [users] = await db.execute(
+            "SELECT id, name, email, role, status, profile_image FROM users"
+        );
+        res.json(users);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
 
 // 2️⃣ Activate User
 const activateUser = async (req, res) => {
@@ -137,5 +150,6 @@ module.exports = {
     activateUser,
     promoteUser,
     demoteUser,
-    deleteUser
+    deleteUser,
+    getAllUsers
 };

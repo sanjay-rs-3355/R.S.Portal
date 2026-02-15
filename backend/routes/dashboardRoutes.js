@@ -13,6 +13,9 @@ router.get('/projects', verifyToken, dashboardController.getUserProjects);
 /* ================= USER TEAMS ================= */
 router.get('/teams', verifyToken, dashboardController.getUserTeams);
 
+/* ================= USER TASKS ================= */
+router.get('/tasks', verifyToken, dashboardController.getUserTasks);
+
 /* ================= UPCOMING DEADLINES ================= */
 router.get('/deadlines', verifyToken, dashboardController.getUpcomingDeadlines);
 

@@ -21,7 +21,7 @@ app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/projects', require('./routes/projectRoutes'));
 app.use('/api', require('./routes/memberRoutes'));
 app.use('/api', require('./routes/taskRoutes'));
-app.use('/api', require('./routes/dashboardRoutes'));
+// app.use('/api', require('./routes/dashboardRoutes')); // Removed duplicate
 app.use('/api', require('./routes/userRoutes'));
 app.use('/api', require('./routes/messageRoutes'));
 

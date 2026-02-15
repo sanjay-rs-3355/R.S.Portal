@@ -6,6 +6,10 @@ const getDashboard = async (req, res) => {
 
     try {
 
+        // Fetch user details for name display
+        const [[user]] = await db.execute('SELECT name FROM users WHERE id = ?', [userId]);
+        const userName = user ? user.name : 'User';
+
         if (role === 'admin') {
 
             const [[totalUsers]] = await db.execute(
@@ -38,6 +42,7 @@ const getDashboard = async (req, res) => {
 
             return res.json({
                 role: 'admin',
+                name: userName,
                 totalUsers: totalUsers.count,
                 totalProjects: totalProjects.count,
                 totalTasks: totalTasks.count,
@@ -95,6 +100,7 @@ const getDashboard = async (req, res) => {
 
             return res.json({
                 role: 'member',
+                name: userName,
                 joinedProjects: joinedProjects.count,
                 assignedTasks: assignedTasks.count,
                 completedTasks: completedTasks.count,
@@ -114,21 +120,35 @@ const getDashboard = async (req, res) => {
 const getUserProjects = async (req, res) => {
     try {
         const userId = req.user.id;
+        const role = req.user.role;
 
-        // Get projects where user is a member OR created the project
-        // Note: project_members usually handles membership. If creator isn't in members, we might need OR created_by = ?
-        // Assuming creators are added to project_members on creation, but let's be safe.
-        // Simplified query: Join projects and members.
+        let query;
+        let params;
 
-        const [projects] = await db.execute(`
-            SELECT p.*, 
-            (SELECT COUNT(*) FROM tasks t WHERE t.project_id = p.id) as total_tasks,
-            (SELECT COUNT(*) FROM tasks t WHERE t.project_id = p.id AND t.status = 'completed') as completed_tasks
-            FROM projects p
-            JOIN project_members pm ON p.id = pm.project_id
-            WHERE pm.user_id = ? AND p.is_deleted = FALSE
-            GROUP BY p.id
-        `, [userId]);
+        if (role === 'admin') {
+            // Admin sees ALL projects with progress
+            query = `
+                SELECT p.*, 
+                (SELECT COUNT(*) FROM tasks t WHERE t.project_id = p.id) as total_tasks,
+                (SELECT COUNT(*) FROM tasks t WHERE t.project_id = p.id AND t.status = 'completed') as completed_tasks
+                FROM projects p
+                WHERE p.is_deleted = FALSE
+            `;
+            params = [];
+        } else {
+            // Regular user only sees joined projects
+            query = `
+                SELECT p.*, 
+                (SELECT COUNT(*) FROM tasks t WHERE t.project_id = p.id) as total_tasks,
+                (SELECT COUNT(*) FROM tasks t WHERE t.project_id = p.id AND t.status = 'completed') as completed_tasks
+                FROM projects p
+                JOIN project_members pm ON p.id = pm.project_id
+                WHERE pm.user_id = ? AND p.is_deleted = FALSE
+            `;
+            params = [userId];
+        }
+
+        const [projects] = await db.execute(query, params);
 
         // Calculate progress percentage
         const projectsWithProgress = projects.map(p => ({
@@ -147,7 +167,6 @@ const getUserTeams = async (req, res) => {
     try {
         const userId = req.user.id;
 
-        // Get projects user is in
         const [projects] = await db.execute(`
             SELECT p.id, p.title 
             FROM projects p
@@ -158,7 +177,6 @@ const getUserTeams = async (req, res) => {
         const teams = [];
 
         for (const project of projects) {
-            // Get members for each project
             const [members] = await db.execute(`
                 SELECT u.id, u.name, u.email, u.profile_image 
                 FROM users u
@@ -183,11 +201,6 @@ const getUserTeams = async (req, res) => {
 const getUpcomingDeadlines = async (req, res) => {
     try {
         const userId = req.user.id;
-
-        // Get tasks assigned to user OR in user's projects (depending on requirement)
-        // Usually "My Deadlines" implies assigned to me.
-        // Let's go with assigned tasks + project deadlines if not assigned? 
-        // Safer: tasks assigned to user that are not completed.
 
         const [tasks] = await db.execute(`
             SELECT t.id, t.title, t.deadline, p.title as projectTitle
@@ -225,9 +238,29 @@ const getUpcomingDeadlines = async (req, res) => {
     }
 };
 
+const getUserTasks = async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        const [tasks] = await db.execute(`
+            SELECT t.id, t.title, t.status, t.priority, t.deadline, p.title as projectTitle
+            FROM tasks t
+            JOIN projects p ON t.project_id = p.id
+            WHERE t.assigned_to = ?
+            ORDER BY t.deadline ASC
+        `, [userId]);
+
+        res.json(tasks);
+    } catch (error) {
+        console.error("getUserTasks error:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
 module.exports = {
     getDashboard,
     getUserProjects,
     getUserTeams,
-    getUpcomingDeadlines
+    getUpcomingDeadlines,
+    getUserTasks
 };
