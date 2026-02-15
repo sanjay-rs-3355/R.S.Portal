@@ -3,20 +3,28 @@ const logActivity = require('../utils/activityLogger');
 
 const createProject = async (req, res) => {
     const { title, description } = req.body;
-    const adminId = req.user.id;
+    const userId = req.user.id;
 
     try {
         const [result] = await db.execute(
             'INSERT INTO projects (title, description, created_by) VALUES (?, ?, ?)',
-            [title, description, adminId]
+            [title, description, userId]
+        );
+
+        const newProjectId = result.insertId;
+
+        // Automatically add creator as a member
+        await db.execute(
+            'INSERT INTO project_members (project_id, user_id) VALUES (?, ?)',
+            [newProjectId, userId]
         );
 
         // ✅ Must be inside async function
-        await logActivity(adminId, result.insertId, "Created a new project");
+        await logActivity(userId, newProjectId, "Created a new project");
 
         res.status(201).json({
             message: 'Project created successfully',
-            projectId: result.insertId
+            projectId: newProjectId
         });
 
     } catch (error) {

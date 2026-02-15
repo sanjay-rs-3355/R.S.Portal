@@ -7,8 +7,8 @@ const requireProjectMember = require('../middleware/projectMiddleware');
 
 const projectController = require('../controllers/projectController');
 
-// Create project (Admin only)
-router.post('/', verifyToken, requireAdmin, projectController.createProject);
+// Create project (Authenticated users)
+router.post('/', verifyToken, projectController.createProject);
 
 // Get all projects
 router.get('/', verifyToken, projectController.getProjects);
@@ -20,4 +20,4 @@ router.get('/:id', verifyToken, requireProjectMember, projectController.getProje
 router.delete('/:id', verifyToken, requireAdmin, projectController.deleteProject);
 
 module.exports = router;
-router.put('/:projectId/transfer/:newAdminId',verifyToken,requireAdmin,projectController.transferOwnership);
+router.put('/:projectId/transfer/:newAdminId', verifyToken, requireAdmin, projectController.transferOwnership);

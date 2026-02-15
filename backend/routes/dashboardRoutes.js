@@ -19,4 +19,10 @@ router.get('/tasks', verifyToken, dashboardController.getUserTasks);
 /* ================= UPCOMING DEADLINES ================= */
 router.get('/deadlines', verifyToken, dashboardController.getUpcomingDeadlines);
 
+/* ================= RECENT ACTIVITY ================= */
+router.get('/activity', verifyToken, dashboardController.getRecentActivity);
+
+/* ================= PERFORMANCE STATS ================= */
+router.get('/performance', verifyToken, dashboardController.getPerformanceStats);
+
 module.exports = router;

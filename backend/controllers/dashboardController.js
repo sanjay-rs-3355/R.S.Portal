@@ -8,7 +8,12 @@ const getDashboard = async (req, res) => {
 
         // Fetch user details for name display
         const [[user]] = await db.execute('SELECT name FROM users WHERE id = ?', [userId]);
-        const userName = user ? user.name : 'User';
+
+        if (!user) {
+            return res.status(401).json({ message: 'User not found' });
+        }
+
+        const userName = user.name;
 
         if (role === 'admin') {
 
@@ -257,10 +262,115 @@ const getUserTasks = async (req, res) => {
     }
 };
 
+
+const getRecentActivity = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const role = req.user.role;
+
+        let query;
+        let params;
+
+        if (role === 'admin') {
+            query = `
+                SELECT al.id, al.action, al.created_at, p.title as projectTitle, u.name as userName
+                FROM activity_logs al
+                LEFT JOIN projects p ON al.project_id = p.id
+                LEFT JOIN users u ON al.user_id = u.id
+                ORDER BY al.created_at DESC
+                LIMIT 10
+            `;
+            params = [];
+        } else {
+            query = `
+                SELECT al.id, al.action, al.created_at, p.title as projectTitle, u.name as userName
+                FROM activity_logs al
+                LEFT JOIN projects p ON al.project_id = p.id
+                LEFT JOIN users u ON al.user_id = u.id
+                WHERE al.user_id = ? 
+                   OR al.project_id IN (SELECT project_id FROM project_members WHERE user_id = ?)
+                ORDER BY al.created_at DESC
+                LIMIT 10
+            `;
+            params = [userId, userId];
+        }
+
+        const [activities] = await db.execute(query, params);
+        res.json(activities);
+    } catch (error) {
+        console.error("getRecentActivity error:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
+const getPerformanceStats = async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        // Group by month for the last 6 months
+        // Count completed tasks vs created/total tasks
+
+        // This query gets completed tasks count per month
+        const [completedStats] = await db.execute(`
+            SELECT 
+                DATE_FORMAT(updated_at, '%Y-%m') as key_month,
+                DATE_FORMAT(updated_at, '%b %Y') as month,
+                COUNT(*) as count
+            FROM tasks 
+            WHERE assigned_to = ? 
+              AND status = 'completed'
+              AND updated_at >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
+            GROUP BY key_month, month
+            ORDER BY key_month ASC
+        `, [userId]);
+
+        // This query gets total tasks assigned per month
+        const [totalStats] = await db.execute(`
+            SELECT 
+                DATE_FORMAT(created_at, '%Y-%m') as key_month,
+                DATE_FORMAT(created_at, '%b %Y') as month,
+                COUNT(*) as count
+            FROM tasks 
+            WHERE assigned_to = ? 
+              AND created_at >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
+            GROUP BY key_month, month
+            ORDER BY key_month ASC
+        `, [userId]);
+
+        // Merge and Format
+        const months = [];
+        for (let i = 5; i >= 0; i--) {
+            const d = new Date();
+            d.setMonth(d.getMonth() - i);
+            const key = d.toISOString().slice(0, 7); // YYYY-MM
+            const label = d.toLocaleString('default', { month: 'short', year: 'numeric' });
+            months.push({ key, label });
+        }
+
+        const labels = months.map(m => m.label);
+        const completedData = months.map(m => {
+            const found = completedStats.find(s => s.key_month === m.key);
+            return found ? found.count : 0;
+        });
+        const totalData = months.map(m => {
+            const found = totalStats.find(s => s.key_month === m.key);
+            return found ? found.count : 0;
+        });
+
+        res.json({ labels, completedData, totalData });
+
+    } catch (error) {
+        console.error("getPerformanceStats error:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
 module.exports = {
     getDashboard,
     getUserProjects,
     getUserTeams,
     getUpcomingDeadlines,
-    getUserTasks
+    getUserTasks,
+    getRecentActivity,
+    getPerformanceStats
 };

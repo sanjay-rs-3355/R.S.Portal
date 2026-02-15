@@ -7,7 +7,7 @@ const jwt = require('jsonwebtoken');
 
 // 1️⃣ REGISTER
 exports.register = async (req, res) => {
-    const { name, email, password } = req.body;
+    const { name, email, password, role } = req.body;
 
     try {
         // Check if email already exists
@@ -23,10 +23,13 @@ exports.register = async (req, res) => {
         // Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Insert user (default role = member)
+        // Default role to 'member' if not specified or invalid
+        const userRole = (role === 'admin' || role === 'member') ? role : 'member';
+
+        // Insert user
         await db.execute(
-            'INSERT INTO users (name, email, password) VALUES (?, ?, ?)',
-            [name, email, hashedPassword]
+            'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)',
+            [name, email, hashedPassword, userRole]
         );
 
         res.status(201).json({ message: 'User registered successfully' });
