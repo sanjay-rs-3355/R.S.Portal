@@ -1,38 +1,99 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
-    <title>Login</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - R.S.Portal</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
+
 <body>
 
-<h2>Login</h2>
+    <div class="login-container">
+        <!-- Left Side: Form -->
+        <div class="login-left">
+            <div class="brand">
+                <div class="logo-icon" style="background: none; width: auto; height: auto;">
+                    <img src="assets/logo.jpg" alt="Logo" style="height: 50px;">
+                </div>
+                <h1>R.S.Portal</h1>
+            </div>
 
-<input type="email" id="email" placeholder="Email"><br><br>
-<input type="password" id="password" placeholder="Password"><br><br>
-<button onclick="login()">Login</button>
+            <div class="login-content">
+                <h2>Login</h2>
 
-<script>
-async function login() {
+                <div class="input-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" placeholder="username@gmail.com">
+                </div>
 
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
+                <div class="input-group">
+                    <label for="password">Password</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="password" placeholder="Password">
+                        <i class="fa-regular fa-eye-slash toggle-pw"></i>
+                    </div>
+                </div>
 
-    const res = await fetch("http://localhost:5000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password })
-    });
+                <a href="#" class="forgot-pw">Forgot Password?</a>
 
-    const data = await res.json();
+                <button onclick="login()" class="btn-primary-lg">Sign in</button>
 
-    if (data.token) {
-        localStorage.setItem("token", data.token);
-        window.location.href = "dashboard.html";
-    } else {
-        alert("Login failed");
-    }
-}
-</script>
+                <div class="divider">
+                    <span>or continue with</span>
+                </div>
+
+                <div class="social-login">
+                    <button class="social-btn"><img src="https://img.icons8.com/color/48/google-logo.png"
+                            alt="Google"></button>
+                    <button class="social-btn"><i class="fa-brands fa-github"></i></button>
+                    <button class="social-btn"><i class="fa-brands fa-facebook-f facebook"></i></button>
+                </div>
+
+                <p class="mt-4">Don't have an account yet? <a href="register.html">Register for free</a></p>
+            </div>
+        </div>
+
+        <!-- Right Side: Image -->
+        <div class="login-right">
+            <!-- Background image set in CSS -->
+        </div>
+    </div>
+
+    <script>
+        async function login() {
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+
+            if (!email || !password) {
+                alert("Please enter both email and password");
+                return;
+            }
+
+            try {
+                const res = await fetch("http://localhost:5000/api/auth/login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await res.json();
+
+                if (res.ok && data.token) {
+                    localStorage.setItem("token", data.token);
+                    window.location.href = "dashboard.html";
+                } else {
+                    alert(data.message || "Login failed");
+                }
+            } catch (error) {
+                console.error("Login error:", error);
+                alert("An error occurred during login.");
+            }
+        }
+    </script>
 
 </body>
+
 </html>

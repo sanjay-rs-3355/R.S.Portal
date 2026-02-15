@@ -2,8 +2,19 @@
 <html>
 
 <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Project</title>
-    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <script src="app.js"></script>
+    <script>
+        // Security Check
+        if (!localStorage.getItem("token")) {
+            window.location.href = "index.html";
+        }
+    </script>
     <link rel="stylesheet" href="style.css">
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -15,19 +26,32 @@
 
         <!-- SIDEBAR -->
         <div class="sidebar">
-            <div class="logo">R.S.Portal</div>
+            <div class="logo">
+                <img src="assets/logo.jpg" alt="R.S.Portal Logo">
+                <span>R.S.Portal</span>
+            </div>
 
 
             <ul class="nav">
-                <li data-route="dashboard.html">Dashboard</li>
-                <li class="active" data-route="project.html">Projects</li>
-                <li data-route="tasks.html">Tasks</li>
+                <li onclick="window.location.href='dashboard.html'">
+                    <i class="fa-solid fa-border-all"></i> &nbsp; Dashboard
+                </li>
+                <li class="active" onclick="window.location.href='project.html'">
+                    <i class="fa-regular fa-folder"></i> &nbsp; Projects
+                </li>
+                <li onclick="window.location.href='tasks.html'">
+                    <i class="fa-regular fa-circle-check"></i> &nbsp; Tasks
+                </li>
+                <li id="admin-users-link" style="display: none;" onclick="window.location.href='users.html'">
+                    <i class="fa-solid fa-users"></i> &nbsp; Users
+                </li>
             </ul>
 
 
 
             <div class="bottom-menu">
-                <button onclick="logout()">Logout</button>
+                <div onclick="logout()" style="cursor: pointer;"><i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    &nbsp; Log Out</div>
             </div>
         </div>
 
@@ -763,30 +787,45 @@
                             }, 16);
                         }
 
-                        function logout() {
-                            localStorage.clear();
-                            window.location.href = "index.html";
-                        }
-
                         window.onclick = function (event) {
                             if (event.target.classList.contains('modal')) {
                                 event.target.style.display = "none";
                             }
                         }
 
+                        // Handle Back Button (bfcache)
+                        window.addEventListener('pageshow', function (event) {
+                            if (!localStorage.getItem("token")) {
+                                window.location.href = "index.html";
+                            }
+                        });
+
                         async function initPage() {
+                            // Initialize Admin Link
+                            const token = localStorage.getItem("token");
+                            try {
+                                const res = await fetch("http://localhost:5000/api/dashboard", {
+                                    headers: { "Authorization": "Bearer " + token }
+                                });
+                                const data = await res.json();
+                                if (data.role === 'admin') {
+                                    document.getElementById('admin-users-link').style.display = 'block';
+                                }
+                            } catch (e) { console.error(e); }
+
                             await loadDashboard();
                             await loadProjects();
                             await loadTeams();
                             await loadDeadlines();
 
-                            // Sidebar Navigation
-                            document.querySelectorAll(".nav li").forEach(item => {
-                                item.addEventListener("click", () => {
-                                    const route = item.getAttribute("data-route");
-                                    if (route) window.location.href = route;
-                                });
-                            });
+
+
+                            // Handle URL Query Params (Auto-open project)
+                            const urlParams = new URLSearchParams(window.location.search);
+                            const projectId = urlParams.get('id');
+                            if (projectId) {
+                                openProjectDetails(projectId);
+                            }
                         }
 
                         initPage();

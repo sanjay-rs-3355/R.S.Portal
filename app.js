@@ -74,18 +74,7 @@ function toggleChat() {
     const popup = document.getElementById("chatPopup");
     popup.classList.toggle("active");
 }
-let completed = 0;
-
-tasks.forEach(task => {
-    if (task.status === "completed") completed++;
-});
-
-document.getElementById("totalTasks").innerText = tasks.length;
-document.getElementById("completedTasks").innerText = completed;
-document.getElementById("pendingTasks").innerText = tasks.length - completed;
-
-const percent = tasks.length
-    ? Math.round((completed / tasks.length) * 100)
-    : 0;
-
-document.getElementById("progressPercent").innerText = percent + "%";
+function logout() {
+    localStorage.clear();
+    window.location.replace("index.html");
+}
