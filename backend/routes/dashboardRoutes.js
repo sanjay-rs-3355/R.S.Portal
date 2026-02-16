@@ -25,4 +25,7 @@ router.get('/activity', verifyToken, dashboardController.getRecentActivity);
 /* ================= PERFORMANCE STATS ================= */
 router.get('/performance', verifyToken, dashboardController.getPerformanceStats);
 
+/* ================= USER GROWTH (ADMIN) ================= */
+router.get('/user-growth', verifyToken, dashboardController.getUserGrowth);
+
 module.exports = router;

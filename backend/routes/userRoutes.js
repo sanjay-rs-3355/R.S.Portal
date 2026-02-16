@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const verifyToken = require('../middleware/authMiddleware');
-const requireAdmin = require('../middleware/roleMiddleware'); // Might need to check if this exists, but file content shows it.
+const { requireAdmin } = require('../middleware/roleMiddleware'); // Might need to check if this exists, but file content shows it.
 const userController = require('../controllers/userController');
 
 // Get all users (Admin only)

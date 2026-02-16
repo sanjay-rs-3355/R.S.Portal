@@ -1,15 +1,17 @@
 // controllers/memberController.js
 
 const db = require('../config/db');
+const logActivity = require('../utils/activityLogger');
 
 const addMember = async (req, res) => {
     const projectId = req.params.id;
     const { email } = req.body; // Changed from userId to email
+    const requesterId = req.user.id;
 
     try {
         // 1. Find user by email
         const [userRows] = await db.execute(
-            'SELECT id FROM users WHERE email = ? AND status = "active"',
+            'SELECT id, name FROM users WHERE email = ? AND status = "active"',
             [email]
         );
 
@@ -17,13 +19,16 @@ const addMember = async (req, res) => {
             return res.status(404).json({ message: 'User not found or inactive' });
         }
 
-        const userId = userRows[0].id;
+        const userToAdd = userRows[0];
+        const userId = userToAdd.id;
 
         // 2. Add to project
         await db.execute(
             'INSERT INTO project_members (project_id, user_id) VALUES (?, ?)',
             [projectId, userId]
         );
+
+        await logActivity(requesterId, projectId, `Added member: ${userToAdd.name}`);
 
         res.status(201).json({ message: 'Member added successfully' });
 
@@ -39,8 +44,12 @@ const addMember = async (req, res) => {
 const removeMember = async (req, res) => {
     const projectId = req.params.id;
     const userId = req.params.userId;
+    const requesterId = req.user.id;
 
     try {
+        // Get user name for logging
+        const [[userToRemove]] = await db.execute('SELECT name FROM users WHERE id = ?', [userId]);
+
         const [result] = await db.execute(
             'DELETE FROM project_members WHERE project_id = ? AND user_id = ?',
             [projectId, userId]
@@ -55,9 +64,14 @@ const removeMember = async (req, res) => {
             [projectId, userId]
         );
 
+        if (userToRemove) {
+            await logActivity(requesterId, projectId, `Removed member: ${userToRemove.name}`);
+        }
+
         res.json({ message: 'Member removed and tasks unassigned' });
 
     } catch (error) {
+        console.error(error);
         res.status(500).json({ message: 'Server error' });
     }
 };

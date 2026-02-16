@@ -5,6 +5,12 @@ const db = require('../config/db');
 const requireTaskOwner = async (req, res, next) => {
     const taskId = req.params.id;
     const userId = req.user.id;
+    const userRole = req.user.role;
+
+    // Admin, Manager, and Tester can update ANY task status/details
+    if (['admin', 'manager', 'tester'].includes(userRole)) {
+        return next();
+    }
 
     try {
         const [rows] = await db.execute(

@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const verifyToken = require('../middleware/authMiddleware');
-const requireAdmin = require('../middleware/roleMiddleware');
+const { requireAdmin } = require('../middleware/roleMiddleware');
 const requireProjectMember = require('../middleware/projectMiddleware');
 
 const memberController = require('../controllers/memberController');

@@ -37,8 +37,20 @@ const getDashboard = async (req, res) => {
                 "SELECT COUNT(*) AS count FROM tasks WHERE status = 'pending'"
             );
 
+            const [[inProgressTasks]] = await db.execute(
+                "SELECT COUNT(*) AS count FROM tasks WHERE status = 'in_progress'"
+            );
+
             const [[highPriority]] = await db.execute(
                 "SELECT COUNT(*) AS count FROM tasks WHERE priority = 'high'"
+            );
+
+            const [[mediumPriority]] = await db.execute(
+                "SELECT COUNT(*) AS count FROM tasks WHERE priority = 'medium'"
+            );
+
+            const [[lowPriority]] = await db.execute(
+                "SELECT COUNT(*) AS count FROM tasks WHERE priority = 'low'"
             );
 
             const [[overdueTasks]] = await db.execute(
@@ -53,7 +65,10 @@ const getDashboard = async (req, res) => {
                 totalTasks: totalTasks.count,
                 completedTasks: completedTasks.count,
                 pendingTasks: pendingTasks.count,
+                inProgressTasks: inProgressTasks.count,
                 highPriorityTasks: highPriority.count,
+                mediumPriorityTasks: mediumPriority.count,
+                lowPriorityTasks: lowPriority.count,
                 overdueTasks: overdueTasks.count
             });
 
@@ -306,36 +321,47 @@ const getRecentActivity = async (req, res) => {
 const getPerformanceStats = async (req, res) => {
     try {
         const userId = req.user.id;
+        const role = req.user.role;
 
         // Group by month for the last 6 months
-        // Count completed tasks vs created/total tasks
+        const isMember = role !== 'admin';
 
-        // This query gets completed tasks count per month
+        // Query Conditions
+        const userCondition = isMember ? 'AND assigned_to = ?' : '';
+        const params = isMember ? [userId] : [];
+
+        // Completed Tasks Query
         const [completedStats] = await db.execute(`
             SELECT 
                 DATE_FORMAT(updated_at, '%Y-%m') as key_month,
                 DATE_FORMAT(updated_at, '%b %Y') as month,
                 COUNT(*) as count
             FROM tasks 
-            WHERE assigned_to = ? 
-              AND status = 'completed'
+            WHERE status = 'completed'
               AND updated_at >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
+              ${userCondition}
             GROUP BY key_month, month
             ORDER BY key_month ASC
-        `, [userId]);
+        `, params);
 
-        // This query gets total tasks assigned per month
+        // Total Tasks Created (for Admin) or Assigned (for Member) Query
+        const dateColumn = isMember ? 'created_at' : 'created_at'; // Both use created_at for trend
+
+        // For Admin: System-wide task creation trend
+        // For Member: Personal assignment trend (using created_at as proxy for when task entered system, or assigned_to check)
+        // If we want "Tasks Assigned To User", we check created_at of task where assigned_to = user.
+
         const [totalStats] = await db.execute(`
             SELECT 
                 DATE_FORMAT(created_at, '%Y-%m') as key_month,
                 DATE_FORMAT(created_at, '%b %Y') as month,
                 COUNT(*) as count
             FROM tasks 
-            WHERE assigned_to = ? 
-              AND created_at >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
+            WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
+              ${userCondition}
             GROUP BY key_month, month
             ORDER BY key_month ASC
-        `, [userId]);
+        `, params);
 
         // Merge and Format
         const months = [];
@@ -365,6 +391,48 @@ const getPerformanceStats = async (req, res) => {
     }
 };
 
+const getUserGrowth = async (req, res) => {
+    try {
+        // Admin Only
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ message: "Access denied" });
+        }
+
+        const [stats] = await db.execute(`
+            SELECT 
+                DATE_FORMAT(created_at, '%Y-%m') as key_month,
+                DATE_FORMAT(created_at, '%b') as month,
+                COUNT(*) as count
+            FROM users 
+            WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
+            GROUP BY key_month, month
+            ORDER BY key_month ASC
+        `);
+
+        // Fill gaps
+        const months = [];
+        for (let i = 5; i >= 0; i--) {
+            const d = new Date();
+            d.setMonth(d.getMonth() - i);
+            const key = d.toISOString().slice(0, 7);
+            const label = d.toLocaleString('default', { month: 'short' });
+            months.push({ key, label });
+        }
+
+        const labels = months.map(m => m.label);
+        const data = months.map(m => {
+            const found = stats.find(s => s.key_month === m.key);
+            return found ? found.count : 0;
+        });
+
+        res.json({ labels, data });
+
+    } catch (error) {
+        console.error("getUserGrowth error:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
 module.exports = {
     getDashboard,
     getUserProjects,
@@ -372,5 +440,6 @@ module.exports = {
     getUpcomingDeadlines,
     getUserTasks,
     getRecentActivity,
-    getPerformanceStats
+    getPerformanceStats,
+    getUserGrowth
 };

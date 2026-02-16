@@ -2,16 +2,16 @@ const express = require('express');
 const router = express.Router();
 
 const verifyToken = require('../middleware/authMiddleware');
-const requireAdmin = require('../middleware/roleMiddleware');
+const { requireAdmin, requireManager, requireTester } = require('../middleware/roleMiddleware');
 const requireProjectMember = require('../middleware/projectMiddleware');
 const requireTaskOwner = require('../middleware/taskMiddleware');
 
 const taskController = require('../controllers/taskController');
 
-// Create task
+// Create task (Admin, Manager, Tester)
 router.post('/projects/:id/tasks',
     verifyToken,
-    requireAdmin,
+    requireTester,
     taskController.createTask
 );
 
@@ -22,24 +22,31 @@ router.get('/projects/:id/tasks',
     taskController.getTasks
 );
 
-// Update task status
+// Update task status (Owner, Admin, Manager, Tester - handled by middleware)
 router.put('/tasks/:id/status',
     verifyToken,
     requireTaskOwner,
     taskController.updateTaskStatus
 );
 
-// Update priority
+// Update priority (Admin, Manager)
 router.put('/tasks/:id/priority',
     verifyToken,
-    requireAdmin,
+    requireManager,
     taskController.updatePriority
 );
 
-// Delete task
+// Assign task (Admin, Manager)
+router.put('/tasks/:id/assign',
+    verifyToken,
+    requireManager,
+    taskController.assignTask
+);
+
+// Delete task (Admin, Manager)
 router.delete('/tasks/:id',
     verifyToken,
-    requireAdmin,
+    requireManager,
     taskController.deleteTask
 );
 

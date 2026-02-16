@@ -3,6 +3,7 @@
 const db = require('../config/db');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const logActivity = require('../utils/activityLogger');
 
 
 // 1️⃣ REGISTER
@@ -24,7 +25,7 @@ exports.register = async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 10);
 
         // Default role to 'member' if not specified or invalid
-        const userRole = (role === 'admin' || role === 'member') ? role : 'member';
+        const userRole = (role === 'admin' || role === 'member' || role === 'manager' || role === 'tester') ? role : 'member';
 
         // Insert user
         await db.execute(
@@ -69,33 +70,23 @@ exports.login = async (req, res) => {
             return res.status(401).json({ message: 'Invalid email or password' });
         }
 
-        // Generate JWT
+        // Generate Token
         const token = jwt.sign(
-            {
-                id: user.id,
-                name: user.name,   // ADD THIS
-                role: user.role
-            },
+            { id: user.id, name: user.name, role: user.role, email: user.email }, // Added email to token
             process.env.JWT_SECRET,
-            { expiresIn: "2h" }
+            { expiresIn: '24h' }
         );
 
+        // Update last login
+        await db.execute('UPDATE users SET last_login = NOW() WHERE id = ?', [user.id]);
 
-        // Update last_login
-        await db.execute(
-            'UPDATE users SET last_login = NOW() WHERE id = ?',
-            [user.id]
-        );
+        // Log activity
+        await logActivity(user.id, null, "User logged in");
 
         res.json({
             message: 'Login successful',
             token,
-            user: {
-                id: user.id,
-                name: user.name,
-                email: user.email,
-                role: user.role
-            }
+            user: { id: user.id, name: user.name, role: user.role }
         });
 
     } catch (error) {
