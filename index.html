@@ -6,10 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - R.S.Portal</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="auth.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body>
+    <div id="toast-container"></div>
 
     <div class="login-container">
         <!-- Left Side: Form -->
@@ -46,10 +48,15 @@
                 </div>
 
                 <div class="social-login">
-                    <button class="social-btn"><img src="https://img.icons8.com/color/48/google-logo.png"
-                            alt="Google"></button>
-                    <button class="social-btn"><i class="fa-brands fa-github"></i></button>
-                    <button class="social-btn"><i class="fa-brands fa-facebook-f facebook"></i></button>
+                    <button class="social-btn" onclick="showToast('Google login coming soon!', 'info')">
+                        <img src="https://img.icons8.com/color/48/google-logo.png" alt="Google">
+                    </button>
+                    <button class="social-btn" onclick="showToast('GitHub login coming soon!', 'info')">
+                        <i class="fa-brands fa-github"></i>
+                    </button>
+                    <button class="social-btn" onclick="showToast('Facebook login coming soon!', 'info')">
+                        <i class="fa-brands fa-facebook-f facebook"></i>
+                    </button>
                 </div>
 
                 <p class="mt-4">Don't have an account yet? <a href="register.html">Register for free</a></p>
@@ -63,12 +70,45 @@
     </div>
 
     <script>
+        /* ================= TOAST LOGIC ================= */
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <div class="toast-content">${message}</div>
+            `;
+            container.appendChild(toast);
+
+            // Auto remove
+            setTimeout(() => {
+                toast.style.animation = 'fadeOut 0.3s forwards';
+                toast.addEventListener('animationend', () => {
+                    toast.remove();
+                });
+            }, 3000);
+        }
+
+        // Toggle Password Visibility
+        document.querySelector('.toggle-pw').addEventListener('click', function () {
+            const input = this.previousElementSibling;
+            if (input.type === "password") {
+                input.type = "text";
+                this.classList.remove('fa-eye-slash');
+                this.classList.add('fa-eye');
+            } else {
+                input.type = "password";
+                this.classList.remove('fa-eye');
+                this.classList.add('fa-eye-slash');
+            }
+        });
+
         async function login() {
             const email = document.getElementById("email").value;
             const password = document.getElementById("password").value;
 
             if (!email || !password) {
-                alert("Please enter both email and password");
+                showToast("Please enter both email and password", "error");
                 return;
             }
 
@@ -83,13 +123,31 @@
 
                 if (res.ok && data.token) {
                     localStorage.setItem("token", data.token);
-                    window.location.href = "dashboard.html";
+
+                    // Parse Token to Check Role
+                    function parseJwt(token) {
+                        try { return JSON.parse(atob(token.split(".")[1])); }
+                        catch (e) { return null; }
+                    }
+
+                    const user = parseJwt(data.token);
+                    const role = user ? user.role : 'member';
+
+                    showToast("Login successful! Redirecting...");
+
+                    setTimeout(() => {
+                        if (role === 'admin') {
+                            window.location.href = "admin-dashboard.html";
+                        } else {
+                            window.location.href = "member-dashboard.html";
+                        }
+                    }, 1000);
                 } else {
-                    alert(data.message || "Login failed");
+                    showToast(data.message || "Login failed", "error");
                 }
             } catch (error) {
                 console.error("Login error:", error);
-                alert("An error occurred during login.");
+                showToast("An error occurred during login.", "error");
             }
         }
     </script>

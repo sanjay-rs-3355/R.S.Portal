@@ -1,0 +1,35 @@
+/* ================= TASKS STYLES ================= */
+
+.task-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.task-item {
+    background: #f8fafc;
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 4px solid #cbd5e1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.task-item.priority-high {
+    border-left-color: #ef4444;
+}
+
+.task-item.priority-medium {
+    border-left-color: #f59e0b;
+}
+
+.task-item.priority-low {
+    border-left-color: #10b981;
+}
+
+.task-actions {
+    display: flex;
+    gap: 10px;
+}

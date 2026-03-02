@@ -1,29 +1,481 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
-    <title>Project Chat</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Chat - R.S.Portal</title>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="dashboard.css">
+    <link rel="stylesheet" href="chat.css"> <!-- Will reuse message styles -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Specific Chat Page Styles */
+        .chat-container {
+            display: flex;
+            height: calc(100vh - 100px);
+            /* Adjust for topbar/padding */
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .chat-sidebar {
+            width: 300px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid #e2e8f0;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .chat-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .chat-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .chat-item:hover {
+            background: #f1f5f9;
+        }
+
+        .chat-item.active {
+            background: #e0e7ff;
+        }
+
+        .chat-item-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: #cbd5e1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .chat-item-info {
+            flex: 1;
+        }
+
+        .chat-item-name {
+            font-weight: 600;
+            font-size: 14px;
+            color: #334155;
+        }
+
+        .chat-item-last {
+            font-size: 12px;
+            color: #64748b;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 180px;
+        }
+
+        .chat-main {
+            flex: 1;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-main-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .chat-messages-area {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .chat-input-area {
+            padding: 15px;
+            background: white;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input-field {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            outline: none;
+        }
+
+        /* Reuse .message styles from chat.css but override colors slightly if needed */
+        .message {
+            max-width: 60%;
+            padding: 10px 16px;
+            border-radius: 12px;
+            font-size: 14px;
+            line-height: 1.5;
+            position: relative;
+        }
+
+        .message.self {
+            background: #4f46e5;
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 2px;
+        }
+
+        .message.other {
+            background: white;
+            border: 1px solid #e2e8f0;
+            color: #334155;
+            align-self: flex-start;
+            border-bottom-left-radius: 2px;
+        }
+
+        .message-sender {
+            font-size: 11px;
+            color: #64748b;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .message.self .message-sender {
+            color: #e0e7ff;
+            text-align: right;
+        }
+    </style>
 </head>
+
 <body>
+    <div id="toast-container"></div>
 
-<h2>Project Chat</h2>
+    <div class="layout">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+                <img src="assets/logo.jpg" alt="R.S.Portal Logo">
+                <span>R.S.Portal</span>
+            </div>
+            <ul class="nav">
+                <li id="navDashboard">
+                    <i class="fa-solid fa-border-all"></i> &nbsp; Dashboard
+                </li>
 
-<input type="number" id="projectId" placeholder="Enter Project ID">
-<button onclick="joinProject()">Join</button>
+                <li id="navProjects">
+                    <i class="fa-regular fa-folder"></i> &nbsp; Projects
+                </li>
 
-<h3>Online Users</h3>
-<ul id="onlineUsers"></ul>
+                <li id="navTasks">
+                    <i class="fa-regular fa-circle-check"></i> &nbsp; Tasks
+                </li>
 
-<h3>Messages</h3>
-<div id="messages"></div>
+                <li class="active" id="navChat">
+                    <i class="fa-regular fa-comments"></i> &nbsp; Chat
+                </li>
 
-<input type="text" id="messageInput" placeholder="Type message..."
-    oninput="handleTyping()" />
-<button onclick="sendMessage()">Send</button>
+                <li id="admin-users-link" style="display:none;">
+                    <i class="fa-solid fa-users"></i> &nbsp; Users
+                </li>
+            </ul>
+            <div class="bottom-menu">
+                <div id="navLogout" style="cursor: pointer;"><i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    &nbsp; Log Out</div>
+            </div>
+        </div>
 
-<p id="typingStatus"></p>
+        <!-- Main Content -->
+        <div class="main">
+            <!-- Topbar -->
+            <div class="topbar">
+                <div class="top-left">
+                    <div class="breadcrumb">Pages / <span class="crumb-active">Chat</span></div>
+                    <div class="page-subtitle">Team Communication</div>
+                </div>
+                <div class="top-right">
+                    <div class="notification">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="notif-dot"></span>
+                    </div>
+                    <div class="user">
+                        <div class="user-avatar" id="user-avatar">U</div>
+                        <span class="arrow"><i class="fa-solid fa-chevron-down"></i></span>
+                    </div>
+                </div>
+            </div>
 
-<script src="app.js"></script>
+            <!-- Page Content -->
+            <div class="dashboard-area" style="padding-bottom: 0;">
+                <div class="chat-container">
+
+                    <!-- Chat Sidebar (Project List) -->
+                    <div class="chat-sidebar">
+                        <div class="chat-sidebar-header">
+                            Projects / Teams
+                        </div>
+                        <div class="chat-list" id="projectList">
+                            <!-- Populated by JS -->
+                            <p style="padding: 20px; text-align: center; color: #94a3b8;">Loading...</p>
+                        </div>
+                    </div>
+
+                    <!-- Chat Main Area -->
+                    <div class="chat-main">
+                        <div class="chat-main-header">
+                            <div class="chat-item-avatar" id="activeChatAvatar"
+                                style="background: #e2e8f0; color: #64748b;">#</div>
+                            <div>
+                                <h3 style="margin: 0; font-size: 16px;" id="activeChatTitle">Select a project</h3>
+                                <span style="font-size: 12px; color: #64748b;" id="activeChatSubtitle">to start
+                                    messaging</span>
+                            </div>
+                        </div>
+
+                        <div class="chat-messages-area" id="chatMessages">
+                            <!-- Populated by JS -->
+                            <div
+                                style="display: flex; height: 100%; align-items: center; justify-content: center; color: #94a3b8; flex-direction: column;">
+                                <i class="fa-regular fa-comments" style="font-size: 40px; margin-bottom: 10px;"></i>
+                                <p>Select a project from the left to view messages</p>
+                            </div>
+                        </div>
+
+                        <div class="chat-input-area">
+                            <input type="text" class="chat-input-field" id="messageInput"
+                                placeholder="Type a message..." disabled>
+                            <button class="btn-primary" id="sendMessageBtn" style="margin: 0; padding: 0 20px;"
+                                disabled>
+                                <i class="fa-solid fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        const token = localStorage.getItem("token");
+        if (!token) window.location.href = "index.html";
+
+        let currentProjectId = null;
+        let currentUser = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            setupNavigation();
+            initPage();
+        });
+
+        function setupNavigation() {
+            // Standard Nav
+            document.getElementById('navDashboard')?.addEventListener('click', () => {
+                const u = parseJwt(token);
+                window.location.href = u.role === 'admin' ? 'admin-dashboard.html' : 'member-dashboard.html';
+            });
+            document.getElementById('navProjects')?.addEventListener('click', () => window.location.href = 'project.html');
+            document.getElementById('navTasks')?.addEventListener('click', () => window.location.href = 'tasks.html');
+            document.getElementById('navChat')?.addEventListener('click', () => window.location.href = 'chat.html');
+            document.getElementById('navLogout')?.addEventListener('click', logout);
+
+            const user = parseJwt(token);
+            if (user && user.role === 'admin') {
+                document.getElementById('admin-users-link').style.display = 'block';
+                document.getElementById('admin-users-link').addEventListener('click', () => window.location.href = 'users.html');
+            }
+
+            // Send Message Listeners
+            document.getElementById('sendMessageBtn').addEventListener('click', sendMessage);
+            document.getElementById('messageInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') sendMessage();
+            });
+        }
+
+        async function initPage() {
+            currentUser = parseJwt(token);
+            if (currentUser.name) {
+                document.getElementById('user-avatar').innerText = currentUser.name.charAt(0).toUpperCase();
+            }
+
+            // Load Projects
+            await loadProjects();
+        }
+
+        async function loadProjects() {
+            const list = document.getElementById('projectList');
+            const endpoint = currentUser.role === 'admin' ? '/api/projects' : '/api/dashboard/projects';
+
+            try {
+                const res = await fetch(`http://localhost:5000${endpoint}`, {
+                    headers: { "Authorization": "Bearer " + token }
+                });
+                const projects = await res.json();
+
+                list.innerHTML = "";
+                if (!projects || projects.length === 0) {
+                    list.innerHTML = `<p style="padding: 20px; text-align: center; color: #94a3b8;">No projects found.</p>`;
+                    return;
+                }
+
+                projects.forEach(p => {
+                    const item = document.createElement('div');
+                    item.className = 'chat-item';
+                    item.onclick = () => selectProject(p);
+                    item.innerHTML = `
+                        <div class="chat-item-avatar" style="background: #6366f1;">${p.title.charAt(0).toUpperCase()}</div>
+                        <div class="chat-item-info">
+                            <div class="chat-item-name">${p.title}</div>
+                            <div class="chat-item-last">Click to open chat</div>
+                        </div>
+                    `;
+                    list.appendChild(item);
+                });
+
+            } catch (e) {
+                console.error(e);
+                list.innerHTML = `<p style="padding: 20px; text-align: center; color: #ef4444;">Error loading projects.</p>`;
+            }
+        }
+
+        async function selectProject(project) {
+            currentProjectId = project.id || project._id;
+
+            // Update Active Header
+            document.getElementById('activeChatTitle').innerText = project.title;
+            document.getElementById('activeChatSubtitle').innerText = "Project Chat Room";
+            document.getElementById('activeChatAvatar').innerText = project.title.charAt(0).toUpperCase();
+            document.getElementById('activeChatAvatar').style.background = "#6366f1";
+            document.getElementById('activeChatAvatar').style.color = "white";
+
+            // Enable Input
+            document.getElementById('messageInput').disabled = false;
+            document.getElementById('sendMessageBtn').disabled = false;
+            document.getElementById('messageInput').focus();
+
+            // Highlight List Item
+            document.querySelectorAll('.chat-item').forEach(el => el.classList.remove('active'));
+            // (Ideally we'd find the specific element, but re-render or explicit ID approach is complex for this snippet. 
+            // We can just trust the user click provides visual feedback or add ID to element).
+
+            // Join Socket Room
+            if (socket) {
+                socket.emit('joinProject', currentProjectId);
+            }
+
+            // Load History
+            await loadChatHistory(currentProjectId);
+        }
+
+        async function loadChatHistory(projectId) {
+            const container = document.getElementById('chatMessages');
+            container.innerHTML = `<p style="text-align:center; padding:20px; color:#94a3b8;">Loading messages...</p>`;
+
+            try {
+                const res = await fetch(`http://localhost:5000/api/projects/${projectId}/messages`, {
+                    headers: { "Authorization": "Bearer " + token }
+                });
+                const messages = await res.json();
+
+                container.innerHTML = "";
+                if (!messages || messages.length === 0) {
+                    container.innerHTML = `<p style="text-align:center; padding:20px; color:#94a3b8;">No messages yet. Say hello!</p>`;
+                } else {
+                    messages.forEach(msg => appendMessage(msg));
+                }
+                container.scrollTop = container.scrollHeight;
+
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function appendMessage(data) {
+            const container = document.getElementById('chatMessages');
+            // If empty placeholder exists, remove it
+            if (container.querySelector('p')) container.innerHTML = "";
+
+            const div = document.createElement('div');
+
+            const senderId = typeof data.sender === 'object' ? data.sender._id : data.sender;
+            const senderName = typeof data.sender === 'object' ? data.sender.name : "User"; // Fallback
+            const isSelf = senderId === currentUser.id || data.userId === currentUser.id;
+
+            div.className = `message ${isSelf ? 'self' : 'other'}`;
+
+            div.innerHTML = `
+                ${!isSelf ? `<span class="message-sender">${senderName}</span>` : ''}
+                ${data.message || data.content}
+            `;
+
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            if (!message || !currentProjectId) return;
+
+            // Emit
+            if (socket) {
+                socket.emit('sendMessage', { projectId: currentProjectId, message });
+            }
+
+            // Optimistic Append (optional, or wait for socket echo)
+            // socket.on('receiveMessage') handles styling, but we might want immediate feedback.
+            // Let's rely on socket echo for consistency if app.js handles it, otherwise duplicate.
+            // app.js has socket listener but it might be tied to 'project.html' context check.
+
+            input.value = "";
+        }
+
+        // Socket Listener
+        if (socket) {
+            socket.on('receiveMessage', (data) => {
+                if (currentProjectId && (data.projectId === currentProjectId || data.project === currentProjectId)) {
+                    appendMessage(data);
+                }
+            });
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = "index.html";
+        }
+    </script>
 </body>
+
 </html>

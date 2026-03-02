@@ -9,11 +9,15 @@
     <meta http-equiv="Expires" content="0">
     <title>Users - R.S.Portal</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="dashboard.css">
+    <link rel="stylesheet" href="users.css">
+    <link rel="stylesheet" href="chat.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body>
 
+    <div id="toast-container"></div>
     <div class="layout">
         <!-- Sidebar -->
         <div class="sidebar">
@@ -22,25 +26,24 @@
                 <span>R.S.Portal</span>
             </div>
             <ul class="nav">
-                <li onclick="window.location.href='dashboard.html'">
+                <li id="navDashboard">
                     <i class="fa-solid fa-border-all"></i> &nbsp; Dashboard
                 </li>
 
-                <li onclick="window.location.href='project.html'">
+                <li id="navProjects">
                     <i class="fa-regular fa-folder"></i> &nbsp; Projects
                 </li>
 
-                <li onclick="window.location.href='tasks.html'">
+                <li id="navTasks">
                     <i class="fa-regular fa-circle-check"></i> &nbsp; Tasks
                 </li>
 
-                <li class="active" id="admin-users-link" style="display:none;"
-                    onclick="window.location.href='users.html'">
+                <li class="active" id="navUsers" style="display:none;">
                     <i class="fa-solid fa-users"></i> &nbsp; Users
                 </li>
             </ul>
             <div class="bottom-menu">
-                <div onclick="logout()" style="cursor: pointer;"><i class="fa-solid fa-arrow-right-from-bracket"></i>
+                <div id="navLogout" style="cursor: pointer;"><i class="fa-solid fa-arrow-right-from-bracket"></i>
                     &nbsp; Log Out</div>
             </div>
         </div>
@@ -69,21 +72,72 @@
                 </div>
             </div>
 
-            <!-- Page Content -->
-            <div class="dashboard-area">
-                <h2>User Management</h2>
-                <div class="card-box">
-                    <table class="data-table" id="users-table">
-                        <thead>
-                            <tr>
-                                <th>User</th>
-                                <th>Role</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
+            <!-- Header Actions -->
+            <div class="page-header-actions"
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div>
+                    <h2 class="page-title" style="margin: 0;">User Management</h2>
+                    <p style="color: #64748b; font-size: 14px; margin-top: 5px;" id="user-count-subtitle">Loading
+                        users...</p>
+                </div>
+                <button class="btn-primary" onclick="openModal('addUserModal')"><i class="fa-solid fa-plus"></i> &nbsp;
+                    Add New User</button>
+            </div>
+
+            <!-- Filters & Search -->
+            <div class="card-box" style="padding: 15px; margin-bottom: 20px;">
+                <div class="user-controls"
+                    style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                    <div class="role-filters" style="display: flex; gap: 10px;">
+                        <button class="filter-tab active" onclick="filterUsers('All')">All</button>
+                        <button class="filter-tab" onclick="filterUsers('admin')">Admins</button>
+                        <button class="filter-tab" onclick="filterUsers('member')">Members</button>
+                    </div>
+                    <div class="search-wrapper-sm"
+                        style="background: #f1f5f9; padding: 8px 15px; border-radius: 8px; display: flex; align-items: center; gap: 10px; width: 300px;">
+                        <i class="fa-solid fa-magnifying-glass" style="color: #94a3b8;"></i>
+                        <input type="text" id="userListSearch" placeholder="Search by name or email..."
+                            onkeyup="searchUsersTable()"
+                            style="border: none; background: transparent; outline: none; width: 100%; color: #334155;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Table -->
+            <div class="card-box" style="padding: 0; overflow: hidden;">
+                <table class="modern-table" id="users-table">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Joined</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- MODALS -->
+            <div id="addUserModal" class="modal">
+                <div class="modal-content" style="width: 400px;">
+                    <span class="close" onclick="closeModal('addUserModal')">&times;</span>
+                    <h2>Add New User</h2>
+                    <form id="addUserForm" onsubmit="handleAddUser(event)">
+                        <input type="text" id="newUserName" placeholder="Full Name" required>
+                        <input type="email" id="newUserEmail" placeholder="Email Address" required>
+                        <input type="password" id="newUserPassword" placeholder="Password" required>
+                        <select id="newUserRole">
+                            <option value="member">Member</option>
+                            <option value="admin">Admin</option>
+                            <option value="manager">Manager</option>
+                            <option value="tester">Tester</option>
+                        </select>
+                        <button type="submit">Create User</button>
+                    </form>
                 </div>
             </div>
 
@@ -102,18 +156,34 @@
             }
         });
 
+        let allUsers = [];
+        let currentRoleFilter = 'All';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            setupNavigation();
+            initPage();
+        });
+
+        function setupNavigation() {
+            document.getElementById('navDashboard')?.addEventListener('click', () => window.location.href = 'admin-dashboard.html');
+            document.getElementById('navProjects')?.addEventListener('click', () => window.location.href = 'project.html');
+            document.getElementById('navTasks')?.addEventListener('click', () => window.location.href = 'tasks.html');
+            document.getElementById('navUsers')?.addEventListener('click', () => window.location.href = 'users.html');
+            document.getElementById('navLogout')?.addEventListener('click', logout);
+            document.querySelector('.logo')?.addEventListener('click', () => window.location.href = 'index.html');
+        }
         async function initPage() {
             try {
                 // Determine role
-                const res = await fetch("http://localhost:5000/api/dashboard", {
-                    headers: { "Authorization": "Bearer " + token }
-                });
-                const data = await res.json();
-                const role = data.role || 'member';
-                if (role !== 'admin') {
+                const user = parseJwt(token);
+                if (!user || user.role !== 'admin') {
                     alert("Unauthorized access");
                     window.location.href = "dashboard.html";
                     return;
+                }
+
+                if (user.name) {
+                    document.getElementById("user-avatar").innerText = user.name.charAt(0).toUpperCase();
                 }
 
                 document.getElementById('admin-users-link').style.display = 'block';
@@ -132,45 +202,182 @@
                     headers: { "Authorization": "Bearer " + token }
                 });
                 const users = await res.json();
-                const tbody = document.querySelector("#users-table tbody");
-                tbody.innerHTML = "";
+                allUsers = users; // Store for filtering
 
-                users.forEach(u => {
-                    tbody.innerHTML += `
-                    <tr>
-                        <td>
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <div class="user-avatar" style="background: #e2e8f0; color: #333;">${u.name.charAt(0)}</div>
-                                <div>
-                                    <div style="font-weight: 600;">${u.name}</div>
-                                    <div style="font-size: 12px; color: #666;">${u.email}</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td><span class="badge ${u.role}">${u.role}</span></td>
-                        <td>${u.status}</td>
-                        <td>
-                            <button class="btn-icon" onclick="deleteUser(${u.id})"><i class="fa-regular fa-trash-can"></i></button>
-                        </td>
-                    </tr>
-                `;
-                });
+                document.getElementById('user-count-subtitle').innerText = `${users.length} users found`;
+                renderUsersTable(users);
+
             } catch (e) { console.error(e); }
         }
 
-        async function deleteUser(id) {
-            if (!confirm("Are you sure you want to delete this user?")) return;
-            // Implementation for delete user (fetching backend generic delete likely)
-            // Currently not fully implemented in dashboard.html snippet provided earlier but button was there.
-            // Assuming similar API structure:
-            /*
-            const res = await fetch(`http://localhost:5000/api/users/${id}`, {
-                method: 'DELETE',
-                headers: { "Authorization": "Bearer " + token }
+        function renderUsersTable(users) {
+            const tbody = document.querySelector("#users-table tbody");
+            tbody.innerHTML = "";
+
+            if (users.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 20px; color: #64748b;">No users found matching criteria.</td></tr>`;
+                return;
+            }
+
+            const colors = ['#f87171', '#fbbf24', '#34d399', '#60a5fa', '#818cf8', '#a78bfa', '#f472b6'];
+
+            users.forEach((u, index) => {
+                const color = colors[index % colors.length];
+                const joinedDate = u.created_at ? new Date(u.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'N/A';
+
+                // Status Logic (Mock if not in DB)
+                const status = u.status || 'active';
+                const statusClass = status === 'active' ? 'status-active' : 'status-inactive';
+                const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div class="user-avatar-sm" style="background: ${color};">${u.name.charAt(0).toUpperCase()}</div>
+                                <div class="user-info">
+                                    <div class="user-name">${u.name}</div>
+                                    <div class="user-email">${u.email}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="role-badge ${u.role}">${u.role}</span></td>
+                        <td><div class="status-indicator ${statusClass}"><span class="dot"></span> ${statusLabel}</div></td>
+                        <td style="color: #64748b; font-size: 14px;">${joinedDate}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn-icon-sm" onclick="alert('Email ${u.email}')"><i class="fa-regular fa-envelope"></i></button>
+                                <button class="btn-icon-sm" onclick="deleteUser(${u.id})"><i class="fa-regular fa-trash-can"></i></button>
+                                <button class="btn-icon-sm"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
             });
-            if(res.ok) loadAllUsers();
-            */
-            alert("Delete functionality not yet connected in backend for users.");
+        }
+
+        function filterUsers(role) {
+            currentRoleFilter = role;
+
+            // Update UI Tabs
+            document.querySelectorAll('.filter-tab').forEach(btn => {
+                if (btn.innerText.toLowerCase() === role.toLowerCase() || (role === 'All' && btn.innerText === 'All')) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+
+            applyFilters();
+        }
+
+        function searchUsersTable() {
+            applyFilters();
+        }
+
+        function applyFilters() {
+            const term = document.getElementById('userListSearch').value.toLowerCase();
+
+            const filtered = allUsers.filter(u => {
+                const matchesRole = currentRoleFilter === 'All' || u.role === currentRoleFilter;
+                const matchesSearch = u.name.toLowerCase().includes(term) || u.email.toLowerCase().includes(term);
+                return matchesRole && matchesSearch;
+            });
+
+            renderUsersTable(filtered);
+        }
+
+        async function deleteUser(id) {
+            if (!confirm("Are you sure you want to delete this user? This action cannot be undone.")) return;
+
+            try {
+                const res = await fetch(`http://localhost:5000/api/users/${id}`, {
+                    method: "DELETE",
+                    headers: { "Authorization": "Bearer " + token }
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    showToast(data.message || "User deleted successfully", "success");
+                    loadAllUsers();
+                } else {
+                    showToast(data.message || "Failed to delete user", "error");
+                }
+            } catch (error) {
+                console.error(error);
+                showToast("Server error", "error");
+            }
+        }
+
+        async function handleAddUser(e) {
+            e.preventDefault();
+            const name = document.getElementById("newUserName").value;
+            const email = document.getElementById("newUserEmail").value;
+            const password = document.getElementById("newUserPassword").value;
+            const role = document.getElementById("newUserRole").value;
+
+            try {
+                const res = await fetch("http://localhost:5000/api/auth/register", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": "Bearer " + token
+                    },
+                    body: JSON.stringify({ name, email, password, role })
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    showToast("User created successfully", "success");
+                    closeModal('addUserModal');
+                    document.getElementById("addUserForm").reset();
+                    loadAllUsers();
+                } else {
+                    showToast(data.message || "Failed to create user", "error");
+                }
+            } catch (error) {
+                console.error(error);
+                showToast("Server error", "error");
+            }
+        }
+
+        // Modal Functions
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = "flex";
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = "none";
+        }
+
+        // Toast Notification
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <div class="toast-content">
+                    ${message}
+                </div>
+            `;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.animation = 'fadeOut 0.3s forwards';
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, 3000);
+        }
+
+        // Close Modal on Outside Click
+        window.onclick = function (event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = "none";
+            }
         }
 
         function logout() {
@@ -178,7 +385,7 @@
             window.location.href = "index.html";
         }
 
-        initPage();
+        // initPage called via DOMContentLoaded
     </script>
 </body>
 

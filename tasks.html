@@ -9,11 +9,16 @@
     <meta http-equiv="Expires" content="0">
     <title>My Tasks - R.S.Portal</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="dashboard.css">
+    <link rel="stylesheet" href="tasks.css">
+    <link rel="stylesheet" href="users.css">
+    <link rel="stylesheet" href="chat.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body>
 
+    <div id="toast-container"></div>
     <div class="layout">
         <!-- Sidebar -->
         <div class="sidebar">
@@ -22,7 +27,7 @@
                 <span>R.S.Portal</span>
             </div>
             <ul class="nav">
-                <li onclick="window.location.href='dashboard.html'">
+                <li onclick="goToDashboard()">
                     <i class="fa-solid fa-border-all"></i> &nbsp; Dashboard
                 </li>
 
@@ -87,6 +92,36 @@
                 </div>
             </div>
 
+            <!-- MODALS -->
+            <div id="taskDetailsModal" class="modal">
+                <div class="modal-content" style="width: 500px;">
+                    <span class="close" onclick="closeModal('taskDetailsModal')">&times;</span>
+                    <h2 id="modalTaskTitle">Task Title</h2>
+                    <div style="margin-bottom: 20px;">
+                        <span id="modalTaskProject" class="badge member">Project Name</span>
+                        <span id="modalTaskPriority" class="badge">Priority</span>
+                        <span id="modalTaskDeadline" style="margin-left: 10px; font-size: 13px; color: #64748b;"></span>
+                    </div>
+
+                    <p id="modalTaskDesc" style="color: #475569; line-height: 1.6; margin-bottom: 20px;">No description
+                        provided.</p>
+
+                    <div style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                        <label
+                            style="display: block; font-size: 13px; font-weight: 600; color: #64748b; margin-bottom: 8px;">Update
+                            Status:</label>
+                        <select id="modalTaskStatus"
+                            style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1;">
+                            <option value="pending">Pending</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="completed">Completed</option>
+                        </select>
+                        <button class="btn-primary" style="width: 100%; margin-top: 15px;"
+                            onclick="saveTaskStatus()">Update Status</button>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -102,20 +137,25 @@
             }
         });
 
+        let userTasks = []; // Global store
+
         async function initPage() {
             try {
-                // Determine role for sidebar link (simplified check, real app might decode token)
-                const res = await fetch("http://localhost:5000/api/dashboard", {
-                    headers: { "Authorization": "Bearer " + token }
-                });
-                const data = await res.json();
-                const role = data.role || 'member';
-                if (role === 'admin') {
+                // Determine role for sidebar link
+                const user = parseJwt(token);
+                if (user && user.role === 'admin') {
                     document.getElementById('admin-users-link').style.display = 'block';
                 }
 
-                // Set username
-                document.getElementById("user-avatar").innerText = "U"; // Should fetch user details if needed
+                // Set username/avatar
+                if (user && user.name) {
+                    document.getElementById("user-avatar").innerText = user.name.charAt(0).toUpperCase();
+                } else {
+                    document.getElementById("user-avatar").innerText = "U";
+                }
+
+                // Sidebar navigation helpers
+                document.querySelector('.logo')?.addEventListener('click', () => window.location.href = 'index.html');
 
                 fetchUserTasks();
 
@@ -127,10 +167,18 @@
 
         async function fetchUserTasks() {
             try {
-                const res = await fetch("http://localhost:5000/api/dashboard/tasks", {
+                // ADMIN ACCESS: Fetch ALL tasks
+                const user = parseJwt(token);
+                const endpoint = (user && user.role === 'admin')
+                    ? "http://localhost:5000/api/tasks"
+                    : "http://localhost:5000/api/dashboard/tasks";
+
+                const res = await fetch(endpoint, {
                     headers: { "Authorization": "Bearer " + token }
                 });
                 const tasks = await res.json();
+                userTasks = tasks; // Store globally
+
                 const tbody = document.querySelector("#tasks-table tbody");
                 tbody.innerHTML = "";
 
@@ -148,8 +196,10 @@
                     let statusBadge = 'member';
                     if (t.status === 'completed') statusBadge = 'admin';
 
+                    const taskId = t._id || t.id;
+
                     tbody.innerHTML += `
-                        <tr>
+                        <tr onclick="openTaskDetails('${taskId}')" style="cursor: pointer;">
                             <td><div style="font-weight:600;">${t.title}</div></td>
                             <td>${t.projectTitle}</td>
                             <td><span style="color:${priorityColor}; font-weight:600; text-transform:capitalize;">${t.priority}</span></td>
@@ -159,7 +209,87 @@
                     `;
                 });
 
-            } catch (e) { console.error(e); }
+            } catch (e) {
+                console.error(e);
+                showToast("Failed to load tasks", "error");
+            }
+        }
+
+        let currentTaskId = null;
+
+        function openTaskDetails(id) {
+            const task = userTasks.find(t => (t._id || t.id) == id);
+            if (!task) return;
+
+            currentTaskId = id;
+            document.getElementById("modalTaskTitle").innerText = task.title;
+            document.getElementById("modalTaskDesc").innerText = task.description || "No description provided.";
+            document.getElementById("modalTaskProject").innerText = task.projectTitle || "Unknown Project";
+
+            const priorityBadge = document.getElementById("modalTaskPriority");
+            priorityBadge.innerText = task.priority;
+            priorityBadge.className = `badge ${task.priority ? task.priority.toLowerCase() : 'medium'}`;
+            priorityBadge.style.color = 'inherit';
+
+            const deadlineText = task.deadline ? new Date(task.deadline).toLocaleDateString() : 'No Deadline';
+            document.getElementById("modalTaskDeadline").innerText = `Due: ${deadlineText}`;
+
+            document.getElementById("modalTaskStatus").value = task.status;
+
+            document.getElementById("taskDetailsModal").style.display = "flex";
+        }
+
+        async function saveTaskStatus() {
+            const newStatus = document.getElementById("modalTaskStatus").value;
+            try {
+                const res = await fetch(`http://localhost:5000/api/tasks/${currentTaskId}/status`, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": "Bearer " + token
+                    },
+                    body: JSON.stringify({ status: newStatus })
+                });
+
+                if (res.ok) {
+                    showToast(`Task marked as ${newStatus.replace('_', ' ')}`);
+                    closeModal('taskDetailsModal');
+                    fetchUserTasks(); // Refresh list
+                } else {
+                    showToast("Failed to update status", "error");
+                }
+            } catch (e) { console.error(e); showToast("Server error", "error"); }
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = "none";
+        }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<div class="toast-content">${message}</div>`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.animation = 'fadeOut 0.3s forwards';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function goToDashboard() {
+            const user = parseJwt(token);
+            if (user) {
+                window.location.href = user.role === 'admin' ? 'admin-dashboard.html' : 'member-dashboard.html';
+            } else {
+                window.location.href = 'index.html';
+            }
+        }
+
+        window.onclick = function (event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = "none";
+            }
         }
 
         function logout() {
