@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Dashboard - R.S.Portal</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="dashboard.css">
+    <link rel="stylesheet" href="users.css">
+    <link rel="stylesheet" href="chat.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+    <div class="layout">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+                <img src="assets/logo.jpg" alt="R.S.Portal Logo">
+                <span>R.S.Portal</span>
+            </div>
+            <ul class="nav">
+                <li class="active" id="navDashboard">
+                    <i class="fa-solid fa-border-all"></i> &nbsp; Dashboard
+                </li>
+
+                <li id="navProjects">
+                    <i class="fa-regular fa-folder"></i> &nbsp; Projects
+                </li>
+
+                <!-- Tasks less relevant for admin overview, but can keep. Let's prioritize Users -->
+                <li id="navUsers">
+                    <i class="fa-solid fa-users"></i> &nbsp; User Management
+                </li>
+            </ul>
+            <div class="bottom-menu">
+                <div id="navLogout" style="cursor: pointer;"><i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    &nbsp; Log Out</div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main">
+            <!-- Topbar -->
+            <div class="topbar">
+                <div class="top-left">
+                    <div class="breadcrumb">Pages / <span class="crumb-active">Dashboard</span></div>
+                    <div class="page-subtitle">Welcome back, <span id="username-display">User</span></div>
+                </div>
+                <div class="top-right">
+                    <div class="search-wrapper">
+                        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                        <input type="text" id="globalSearch" class="search" placeholder="Search type of keywords">
+                    </div>
+                    <div class="notification" id="notifBtn" style="cursor: pointer;">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="notif-dot"></span>
+                    </div>
+                    <div class="user">
+                        <div class="user-avatar" id="user-avatar"></div>
+                        <span class="arrow"><i class="fa-solid fa-chevron-down"></i></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Content -->
+            <div class="dashboard-area" id="dashboard-section">
+
+                <!-- NEW: Welcome Header -->
+                <div style="margin-bottom: 25px;">
+                    <h2 style="font-size: 24px; color: #1e293b; margin-bottom: 5px;">Dashboard</h2>
+                    <p style="color: #64748b;">Welcome back, Admin</p>
+                </div>
+
+                <!-- OVERVIEW STATS (4 Cards) -->
+                <div class="stats-grid-4">
+                    <!-- Project Card -->
+                    <div class="stat-card-modern">
+                        <div class="stat-content">
+                            <div class="stat-value" id="totalProjects">0</div>
+                            <div class="stat-label">Total Projects</div>
+                        </div>
+                        <div class="stat-icon-box bg-blue">
+                            <i class="fa-regular fa-folder-open"></i>
+                        </div>
+                    </div>
+
+                    <!-- Tasks Card -->
+                    <div class="stat-card-modern">
+                        <div class="stat-content">
+                            <div class="stat-value" id="totalTasks">0</div>
+                            <div class="stat-label">Total Tasks</div>
+                        </div>
+                        <div class="stat-icon-box bg-purple">
+                            <i class="fa-solid fa-list-check"></i>
+                        </div>
+                    </div>
+
+                    <!-- Completed Card -->
+                    <div class="stat-card-modern">
+                        <div class="stat-content">
+                            <div class="stat-value" id="completedTasks">0</div>
+                            <div class="stat-label">Completed Tasks</div>
+                        </div>
+                        <div class="stat-icon-box bg-green">
+                            <i class="fa-regular fa-circle-check"></i>
+                        </div>
+                    </div>
+
+                    <!-- Users Card -->
+                    <div class="stat-card-modern">
+                        <div class="stat-content">
+                            <div class="stat-value" id="totalMembers">0</div>
+                            <div class="stat-label">Total Users</div>
+                        </div>
+                        <div class="stat-icon-box bg-orange">
+                            <i class="fa-solid fa-users"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TASK PRIORITY (Secondary Row - Real Data) -->
+                <div class="stats-grid-4" style="margin-top: 20px;">
+                    <div class="stat-card-sm">
+                        <div class="status-icon warning"><i class="fa-solid fa-fire"></i></div>
+                        <div>
+                            <div class="stat-value-sm" id="highPriorityTasks">0</div>
+                            <div class="stat-label-sm">High Priority</div>
+                        </div>
+                    </div>
+                    <div class="stat-card-sm">
+                        <div class="status-icon info"><i class="fa-solid fa-layer-group"></i></div>
+                        <div>
+                            <div class="stat-value-sm" id="mediumPriorityTasks">0</div>
+                            <div class="stat-label-sm">Medium Priority</div>
+                        </div>
+                    </div>
+                    <div class="stat-card-sm">
+                        <div class="status-icon success"><i class="fa-solid fa-arrow-down"></i></div>
+                        <div>
+                            <div class="stat-value-sm" id="lowPriorityTasks">0</div>
+                            <div class="stat-label-sm">Low Priority</div>
+                        </div>
+                    </div>
+                    <div class="stat-card-sm">
+                        <div class="status-icon purple"><i class="fa-solid fa-clock"></i></div>
+                        <div>
+                            <div class="stat-value-sm" id="overdueTasks">0</div>
+                            <div class="stat-label-sm">Overdue Tasks</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CHARTS ROW -->
+                <div class="charts-grid-3" style="margin-top: 25px;">
+                    <!-- 1. Project Stats -->
+                    <div class="card-box">
+                        <div class="card-header-clean">
+                            <h3>Project Stats</h3>
+                            <select class="select-sm" id="projectStatsFilter">
+                                <option value="week">This Week</option>
+                                <option value="month">This Month</option>
+                            </select>
+                        </div>
+                        <div style="height: 200px; position: relative;">
+                            <canvas id="projectStatsChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- 2. Performance -->
+                    <div class="card-box">
+                        <div class="card-header-clean">
+                            <h3>Performance</h3>
+                            <select class="select-sm" id="performanceFilter">
+                                <option value="week">This Week</option>
+                                <option value="month">This Month</option>
+                            </select>
+                        </div>
+                        <div style="height: 200px; position: relative;">
+                            <canvas id="performanceChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- 3. User Growth (NEW) -->
+                    <div class="card-box">
+                        <div class="card-header-clean">
+                            <h3>User Growth</h3>
+                            <span class="sub-label">Monthly registered</span>
+                        </div>
+                        <div style="height: 200px; position: relative;">
+                            <canvas id="userGrowthChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BOTTOM SECTION: Activity & Team -->
+                <div class="bottom-grid-2" style="margin-top: 25px;">
+                    <!-- Activity Log -->
+                    <div class="card-box">
+                        <div class="card-header-clean">
+                            <h3>Admin Activity Log</h3>
+                            <span class="sub-label">Recent administrative actions</span>
+                        </div>
+                        <div class="timeline-feed" id="activity-list">
+                            <!-- JS Injected -->
+                            <p>Loading activity...</p>
+                        </div>
+                        <div class="card-footer-action"
+                            style="text-align: center; margin-top: 15px; border-top: 1px solid #f1f5f9; padding-top: 10px;">
+                            <button id="viewMoreActivityBtn" class="btn-text-sm"
+                                style="color: #3b82f6; background: none; border: none; font-weight: 500; cursor: pointer;">
+                                View More <i class="fa-solid fa-chevron-down"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Team Members -->
+                    <div class="card-box">
+                        <div class="card-header-clean">
+                            <h3>Team Members</h3>
+                            <span class="sub-label"><span id="total-members-count-2">0</span> members</span>
+                        </div>
+
+                        <!-- Filter chips for team -->
+                        <div class="filter-chips-sm" style="margin-bottom: 15px;" id="teamFilters">
+                            <button class="chip active" data-filter="all">All</button>
+                            <button class="chip" data-filter="Developer">Developer</button>
+                            <button class="chip" data-filter="Manager">Manager</button>
+                            <button class="chip" data-filter="Designer">Designer</button>
+                        </div>
+
+                        <div class="members-grid-compact" id="members-grid-container">
+                            <!-- JS Injected -->
+                        </div>
+                        <div class="card-footer-action"
+                            style="text-align: center; margin-top: 15px; border-top: 1px solid #f1f5f9; padding-top: 10px;">
+                            <button id="viewMoreMembersBtn" class="btn-text-sm"
+                                style="color: #3b82f6; background: none; border: none; font-weight: 500; cursor: pointer;">
+                                View More <i class="fa-solid fa-chevron-down"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script src="dashboard-common.js"></script>
+    <script src="admin-dashboard.js"></script>
+</body>
+
+</html>

@@ -6,10 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register - R.S.Portal</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="auth.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body>
+    <div id="toast-container"></div>
 
     <div class="register-body">
         <div class="glass-card">
@@ -53,6 +55,15 @@
                             <i class="fa-regular fa-eye-slash toggle-pw"></i>
                         </div>
                     </div>
+
+                    <div class="input-group">
+                        <label class="glass-label">Role</label>
+                        <select id="role" class="glass-input"
+                            style="background: rgba(255, 255, 255, 0.9); color: #333;">
+                            <option value="member">Member</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
                 </form>
             </div>
 
@@ -88,6 +99,25 @@
     </div>
 
     <script>
+        /* ================= TOAST LOGIC ================= */
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <div class="toast-content">${message}</div>
+            `;
+            container.appendChild(toast);
+
+            // Auto remove
+            setTimeout(() => {
+                toast.style.animation = 'fadeOut 0.3s forwards';
+                toast.addEventListener('animationend', () => {
+                    toast.remove();
+                });
+            }, 3000);
+        }
+
         // Avatar Selection Logic
         function selectAvatar(imgElement) {
             document.querySelectorAll('.avatar-option').forEach(img => img.classList.remove('selected'));
@@ -125,23 +155,38 @@
             const confirmPassword = document.getElementById("confirm-password").value;
 
             if (password !== confirmPassword) {
-                alert("Passwords do not match");
+                showToast("Passwords do not match", "error");
                 return;
             }
 
             if (!fullname || !email || !password) {
-                alert("Please fill all fields");
+                showToast("Please fill all fields", "error");
                 return;
             }
 
-            // Mock registration logic
-            console.log("Registering", { fullname, email, password });
+            const designation = document.getElementById("designation").value;
 
-            // In a real app, you'd send this to the backend
-            // await fetch('/api/auth/register', ...)
+            try {
+                const res = await fetch('http://localhost:5000/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: fullname, email, password, designation })
+                });
 
-            alert("Registration Successful (Simulated)");
-            window.location.href = "index.html";
+                const data = await res.json();
+
+                if (res.ok) {
+                    showToast("Registration Successful! Redirecting...");
+                    setTimeout(() => {
+                        window.location.href = "index.html";
+                    }, 1500);
+                } else {
+                    showToast(data.message || "Registration failed", "error");
+                }
+            } catch (error) {
+                console.error("Register error:", error);
+                showToast("Server error during registration", "error");
+            }
         }
     </script>
 

@@ -16,12 +16,17 @@
         }
     </script>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="dashboard.css">
+    <link rel="stylesheet" href="projects.css">
+    <link rel="stylesheet" href="users.css">
+    <link rel="stylesheet" href="chat.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
-
+    <div id="toast-container"></div>
     <div class="layout">
 
         <!-- SIDEBAR -->
@@ -30,27 +35,22 @@
                 <img src="assets/logo.jpg" alt="R.S.Portal Logo">
                 <span>R.S.Portal</span>
             </div>
-
-
             <ul class="nav">
-                <li onclick="window.location.href='dashboard.html'">
+                <li id="navDashboard">
                     <i class="fa-solid fa-border-all"></i> &nbsp; Dashboard
                 </li>
-                <li class="active" onclick="window.location.href='project.html'">
+                <li class="active" id="navProjects">
                     <i class="fa-regular fa-folder"></i> &nbsp; Projects
                 </li>
-                <li onclick="window.location.href='tasks.html'">
+                <li id="navTasks">
                     <i class="fa-regular fa-circle-check"></i> &nbsp; Tasks
                 </li>
-                <li id="admin-users-link" style="display: none;" onclick="window.location.href='users.html'">
+                <li id="admin-users-link" style="display: none;">
                     <i class="fa-solid fa-users"></i> &nbsp; Users
                 </li>
             </ul>
-
-
-
             <div class="bottom-menu">
-                <div onclick="logout()" style="cursor: pointer;"><i class="fa-solid fa-arrow-right-from-bracket"></i>
+                <div id="navLogout" style="cursor: pointer;"><i class="fa-solid fa-arrow-right-from-bracket"></i>
                     &nbsp; Log Out</div>
             </div>
         </div>
@@ -98,30 +98,42 @@
 
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                     <h2 class="page-title" style="margin:0;">Overview</h2>
-                    <button class="view-btn" style="margin:0;" onclick="openModal('createProjectModal')">+ New
+                    <button id="btnNewProject" class="view-btn" style="margin:0;">+ New
                         Project</button>
                 </div>
 
                 <!-- STAT CARDS -->
                 <div class="stats-row">
-                    <div class="stat-pill active">
-                        <span class="stat-number" id="totalProjects">0</span>
-                        <span class="stat-label">Total Projects</span>
+                    <div class="stat-card">
+                        <div class="stat-icon project-icon"><i class="fa-regular fa-folder-open"></i></div>
+                        <div>
+                            <span class="stat-number" id="totalProjects">0</span>
+                            <span class="stat-label">Total Projects</span>
+                        </div>
                     </div>
 
-                    <div class="stat-pill">
-                        <span class="stat-number" id="totalTasks">0</span>
-                        <span class="stat-label">Total Tasks</span>
+                    <div class="stat-card">
+                        <div class="stat-icon task-icon"><i class="fa-solid fa-list-check"></i></div>
+                        <div>
+                            <span class="stat-number" id="totalTasks">0</span>
+                            <span class="stat-label">Total Tasks</span>
+                        </div>
                     </div>
 
-                    <div class="stat-pill">
-                        <span class="stat-number" id="completedTasks">0</span>
-                        <span class="stat-label">Completed</span>
+                    <div class="stat-card">
+                        <div class="stat-icon complete-icon"><i class="fa-regular fa-circle-check"></i></div>
+                        <div>
+                            <span class="stat-number" id="completedTasks">0</span>
+                            <span class="stat-label">Completed</span>
+                        </div>
                     </div>
 
-                    <div class="stat-pill">
-                        <span class="stat-number" id="totalMembers">0</span>
-                        <span class="stat-label">Members</span>
+                    <div class="stat-card">
+                        <div class="stat-icon member-icon"><i class="fa-solid fa-users"></i></div>
+                        <div>
+                            <span class="stat-number" id="totalMembers">0</span>
+                            <span class="stat-label">Members</span>
+                        </div>
                     </div>
                 </div>
 
@@ -137,7 +149,7 @@
                             <h3>My Projects</h3>
 
                             <div id="projectsContainer"></div>
-                            <button class="view-btn" onclick="loadProjects()">View All</button>
+                            <button id="btnViewAllProjects" class="view-btn">View All</button>
                         </div>
 
 
@@ -189,72 +201,15 @@
                         <!-- My Teams -->
                         <div class="card-box teams-box">
                             <h3>My Teams</h3>
-
-                            <div class="team-group">
-                                <p class="team-title">Project 1</p>
-                                <div class="team-members">
-                                    <div class="member"></div>
-                                    <div class="member"></div>
-                                    <div class="member"></div>
-                                </div>
-                            </div>
-
-                            <div class="team-group">
-                                <p class="team-title">Project 2</p>
-                                <div class="team-members">
-                                    <div class="member"></div>
-                                    <div class="member"></div>
-                                    <div class="member"></div>
-                                </div>
-                            </div>
-
-                            <div class="team-group">
-                                <p class="team-title">Project 3</p>
-                                <div class="team-members">
-                                    <div class="member"></div>
-                                    <div class="member"></div>
-                                    <div class="member"></div>
-                                </div>
-                            </div>
+                            <!-- Loaded via JS -->
+                            <p style="text-align:center; color:#999;">Loading teams...</p>
                         </div>
 
                         <!-- Upcoming Deadlines -->
                         <div class="card-box deadline-box">
                             <h3>Upcoming Deadlines</h3>
-
-                            <div class="deadline-item">
-                                <div class="deadline-left">
-                                    <span class="deadline-dot urgent"></span>
-                                    <div>
-                                        <strong>API Integration</strong>
-                                        <div class="deadline-sub">Project Two</div>
-                                    </div>
-                                </div>
-                                <div class="deadline-date">Tomorrow</div>
-                            </div>
-
-                            <div class="deadline-item">
-                                <div class="deadline-left">
-                                    <span class="deadline-dot medium"></span>
-                                    <div>
-                                        <strong>UI Fix Updates</strong>
-                                        <div class="deadline-sub">Project One</div>
-                                    </div>
-                                </div>
-                                <div class="deadline-date">2 Days</div>
-                            </div>
-
-                            <div class="deadline-item">
-                                <div class="deadline-left">
-                                    <span class="deadline-dot normal"></span>
-                                    <div>
-                                        <strong>Testing Submission</strong>
-                                        <div class="deadline-sub">Project Three</div>
-                                    </div>
-                                </div>
-                                <div class="deadline-date">5 Days</div>
-                            </div>
-
+                            <!-- Loaded via JS -->
+                            <p style="text-align:center; color:#999;">Loading deadlines...</p>
                         </div>
 
                     </div>
@@ -264,9 +219,9 @@
                     <!-- Create Project Modal -->
                     <div id="createProjectModal" class="modal">
                         <div class="modal-content" style="width: 400px;">
-                            <span class="close" onclick="closeModal('createProjectModal')">&times;</span>
+                            <span class="close" data-modal="createProjectModal">&times;</span>
                             <h2>Create New Project</h2>
-                            <form onsubmit="createProject(event)">
+                            <form id="createProjectForm">
                                 <input type="text" id="newProjectTitle" placeholder="Project Title" required>
                                 <textarea id="newProjectDesc" placeholder="Description"></textarea>
                                 <button type="submit">Create</button>
@@ -277,11 +232,18 @@
                     <!-- Project Details Modal -->
                     <div id="projectDetailsModal" class="modal">
                         <div class="modal-content">
-                            <span class="close" onclick="closeModal('projectDetailsModal')">&times;</span>
+                            <span class="close" data-modal="projectDetailsModal">&times;</span>
 
                             <div class="project-header">
-                                <h2 id="modalTitle">Project Title</h2>
-                                <p id="modalDesc" style="color:#666; margin-bottom:15px;"></p>
+                                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                                    <div>
+                                        <h2 id="modalTitle">Project Title</h2>
+                                        <p id="modalDesc" style="color:#666; margin-bottom:15px;"></p>
+                                    </div>
+                                    <button id="deleteProjectBtn" class="btn-sm"
+                                        style="background:#ef4444; display:none;">Delete
+                                        Project</button>
+                                </div>
                             </div>
 
                             <div style="display:flex; gap:20px;">
@@ -289,17 +251,16 @@
                                 <div style="flex:2;">
                                     <div class="section-title">
                                         <span>Tasks</span>
-                                        <button class="btn-sm" onclick="openModal('addTaskModal')">+ Add</button>
+                                        <button id="addTaskBtn" class="btn-sm">+
+                                            Add</button>
                                     </div>
                                     <div id="modalTaskList" class="task-list"></div>
                                 </div>
-
-                                <!-- Sidebar -->
                                 <div style="flex:1; display:flex; flex-direction:column; gap:20px;">
                                     <div>
                                         <div class="section-title">
                                             <span>Team</span>
-                                            <button class="btn-sm" onclick="openModal('addMemberModal')">+ Add</button>
+                                            <button id="addMemberBtn" class="btn-sm">+ Add</button>
                                         </div>
                                         <div id="modalMemberList" class="member-list"></div>
                                     </div>
@@ -313,9 +274,9 @@
                     <!-- Add Task Modal -->
                     <div id="addTaskModal" class="modal" style="z-index: 2100;">
                         <div class="modal-content" style="width: 400px;">
-                            <span class="close" onclick="closeModal('addTaskModal')">&times;</span>
+                            <span class="close" data-modal="addTaskModal">&times;</span>
                             <h2>Add Task</h2>
-                            <form onsubmit="createTask(event)">
+                            <form id="createTaskForm">
                                 <input type="text" id="newTaskTitle" placeholder="Task Title" required>
                                 <textarea id="newTaskDesc" placeholder="Description"></textarea>
                                 <select id="newTaskPriority">
@@ -323,8 +284,26 @@
                                     <option value="Medium" selected>Medium</option>
                                     <option value="High">High</option>
                                 </select>
+                                <select id="newTaskAssignee">
+                                    <option value="">Unassigned</option>
+                                    <!-- Populated by JS -->
+                                </select>
                                 <input type="date" id="newTaskDue">
                                 <button type="submit">Add</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Assign Task Modal -->
+                    <div id="assignTaskModal" class="modal" style="z-index: 2200;">
+                        <div class="modal-content" style="width: 350px;">
+                            <span class="close" data-modal="assignTaskModal">&times;</span>
+                            <h2>Assign Task</h2>
+                            <form id="assignTaskForm">
+                                <select id="assignTaskSelect" style="width:100%; margin-bottom:15px;">
+                                    <option value="">Unassigned</option>
+                                </select>
+                                <button type="submit">Assign</button>
                             </form>
                         </div>
                     </div>
@@ -332,9 +311,9 @@
                     <!-- Add Member Modal -->
                     <div id="addMemberModal" class="modal" style="z-index: 2100;">
                         <div class="modal-content" style="width: 400px;">
-                            <span class="close" onclick="closeModal('addMemberModal')">&times;</span>
+                            <span class="close" data-modal="addMemberModal">&times;</span>
                             <h2>Add Member</h2>
-                            <form onsubmit="addMember(event)">
+                            <form id="addMemberForm">
                                 <input type="email" id="newMemberEmail" placeholder="Member Email" required>
                                 <button type="submit">Add</button>
                             </form>
@@ -342,496 +321,32 @@
                     </div>
 
                     <!-- Chat Widget -->
-                    <div class="chat-toggle" onclick="toggleChat()">
+                    <div class="chat-toggle" id="chatToggleBtn">
                         💬
                     </div>
 
                     <div class="chat-popup" id="chatPopup">
                         <div class="chat-header">
                             <span style="font-weight: bold;">Project Chat</span>
-                            <span style="cursor: pointer;" onclick="toggleChat()">&times;</span>
+                            <span style="cursor: pointer;" id="chatCloseBtn">&times;</span>
                         </div>
                         <div class="messages" id="chatMessages"></div>
                         <div class="chat-input">
                             <input type="text" id="chatInput" placeholder="Type a message...">
-                            <button onclick="sendChatMessage()">Send</button>
+                            <button id="chatSendBtn">Send</button>
                         </div>
                     </div>
 
-                    <script>
-                        /* ================= CONFIG ================= */
+                    <script src="project.js"></script>
 
-                        const API_BASE = "http://localhost:5000/api";
-                        const token = localStorage.getItem("token");
-
-                        if (!token) {
-                            window.location.href = "index.html";
-                        }
-
-                        /* ================= AUTH & STATE ================= */
-
-                        function parseJwt(token) {
-                            try {
-                                return JSON.parse(atob(token.split(".")[1]));
-                            } catch {
-                                return null;
-                            }
-                        }
-
-                        const user = parseJwt(token);
-                        let currentProjectId = null;
-                        const socket = io("http://localhost:5000", { auth: { token } });
-
-                        if (!user) {
-                            logout();
-                        }
-
-                        function setUserUI() {
-                            const name = user.name || "User";
-                            document.getElementById("usernameDisplay").textContent = name;
-                            document.getElementById("userAvatar").textContent = name.charAt(0).toUpperCase();
-                        }
-
-                        setUserUI();
-
-                        /* ================= CHART ================= */
-
-                        let progressChart;
-
-                        function initChart() {
-                            const ctx = document.getElementById("progressChart").getContext("2d");
-
-                            progressChart = new Chart(ctx, {
-                                type: "doughnut",
-                                data: {
-                                    labels: ["Completed", "Pending", "In Progress"],
-                                    datasets: [{
-                                        data: [0, 0, 0],
-                                        backgroundColor: ["#f5b041", "#5dade2", "#58d68d"],
-                                        borderWidth: 0
-                                    }]
-                                },
-                                options: {
-                                    cutout: "70%",
-                                    responsive: true,
-                                    maintainAspectRatio: false,
-                                    plugins: { legend: { display: false } }
-                                }
-                            });
-                        }
-
-                        function updateChart(values) {
-                            progressChart.data.datasets[0].data = values;
-                            progressChart.update();
-                        }
-
-                        initChart();
-
-                        /* ================= DASHBOARD LOAD ================= */
-
-                        async function loadDashboard() {
-                            try {
-                                const res = await fetch(`${API_BASE}/dashboard`, {
-                                    headers: { Authorization: `Bearer ${token}` }
-                                });
-                                if (!res.ok) throw new Error();
-                                const data = await res.json();
-
-                                animateValue("totalProjects", data.totalProjects || 0);
-                                animateValue("totalTasks", data.totalTasks || 0);
-                                animateValue("completedTasks", data.completedTasks || 0);
-                                animateValue("totalMembers", data.totalMembers || 0);
-
-                                const progress = data.progress || [0, 0, 0];
-                                document.getElementById("completedPercent").textContent = progress[0] + "%";
-                                document.getElementById("pendingPercent").textContent = progress[1] + "%";
-                                document.getElementById("inProgressPercent").textContent = progress[2] + "%";
-
-                                updateChart(progress);
-                            } catch { console.warn("Dashboard load failed"); }
-                        }
-
-                        async function loadProjects() {
-                            try {
-                                const res = await fetch(`${API_BASE}/dashboard/projects`, {
-                                    headers: { Authorization: "Bearer " + token }
-                                });
-                                if (!res.ok) throw new Error("Projects fetch failed");
-
-                                const projects = await res.json();
-                                const container = document.getElementById("projectsContainer");
-                                container.innerHTML = "";
-
-                                if (!projects.length) {
-                                    container.innerHTML = "<p>No projects found</p>";
-                                    return;
-                                }
-
-                                projects.forEach(project => {
-                                    const item = document.createElement("div");
-                                    item.className = "project-item";
-                                    item.style.cursor = "pointer";
-                                    item.onclick = () => openProjectDetails(project._id || project.id); // Handle both ID formats
-
-                                    item.innerHTML = `
-                <div>
-                    <strong>${project.title}</strong>
-                    <div class="project-sub">${project.description || ""}</div>
-                </div>
-                <div class="progress-line" style="width:${project.progress || 0}%"></div>
-            `;
-                                    container.appendChild(item);
-                                });
-                            } catch (err) { console.error("Projects error:", err); }
-                        }
-
-                        async function loadTeams() {
-                            const teamBox = document.querySelector(".teams-box");
-                            try {
-                                const res = await fetch(`${API_BASE}/dashboard/teams`, {
-                                    headers: { Authorization: `Bearer ${token}` }
-                                });
-                                if (!res.ok) throw new Error();
-                                const teams = await res.json();
-
-                                teamBox.innerHTML = "<h3>My Teams</h3>";
-                                if (!teams.length) {
-                                    teamBox.innerHTML += "<p>No team memberships</p>";
-                                    return;
-                                }
-
-                                teams.forEach(team => {
-                                    const group = document.createElement("div");
-                                    group.className = "team-group";
-                                    group.innerHTML = `
-                <p class="team-title">${team.projectTitle}</p>
-                <div class="team-members">
-                    ${team.members.map(m => `
-                        <div class="member" title="${m.name}" style="display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;">
-                            ${m.name.charAt(0).toUpperCase()}
-                        </div>
-                    `).join("")}
-                </div>
-            `;
-                                    teamBox.appendChild(group);
-                                });
-                            } catch { teamBox.innerHTML += "<p>Error loading teams</p>"; }
-                        }
-
-                        async function loadDeadlines() {
-                            const deadlineBox = document.querySelector(".deadline-box");
-                            try {
-                                const res = await fetch(`${API_BASE}/dashboard/deadlines`, {
-                                    headers: { Authorization: `Bearer ${token}` }
-                                });
-                                if (!res.ok) throw new Error();
-                                const deadlines = await res.json();
-
-                                deadlineBox.innerHTML = "<h3>Upcoming Deadlines</h3>";
-                                if (!deadlines.length) {
-                                    deadlineBox.innerHTML += "<p>No upcoming deadlines</p>";
-                                    return;
-                                }
-
-                                deadlines.forEach(item => {
-                                    const div = document.createElement("div");
-                                    div.className = "deadline-item";
-                                    div.innerHTML = `
-                <div class="deadline-left">
-                    <span class="deadline-dot normal"></span>
-                    <div>
-                        <strong>${item.title}</strong>
-                        <div class="deadline-sub">${item.projectTitle}</div>
+                    <!-- Hidden Compatibility Elements for app.js (if needed by shared logic) -->
+                    <div style="display: none;">
+                        <div id="messages"></div>
+                        <input id="messageInput">
+                        <input id="projectId">
+                        <ul id="onlineUsers"></ul>
+                        <div id="typingStatus"></div>
                     </div>
-                </div>
-                <div class="deadline-date">${item.remaining}</div>
-            `;
-                                    deadlineBox.appendChild(div);
-                                });
-                            } catch { deadlineBox.innerHTML += "<p>Error loading deadlines</p>"; }
-                        }
-
-                        /* ================= MODAL LOGIC ================= */
-
-                        function openModal(id) {
-                            document.getElementById(id).style.display = "flex";
-                        }
-
-                        function closeModal(id) {
-                            document.getElementById(id).style.display = "none";
-                        }
-
-                        async function createProject(e) {
-                            e.preventDefault();
-                            const title = document.getElementById("newProjectTitle").value;
-                            const desc = document.getElementById("newProjectDesc").value;
-
-                            try {
-                                const res = await fetch(`${API_BASE}/projects`, {
-                                    method: "POST",
-                                    headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
-                                    body: JSON.stringify({ title, description: desc })
-                                });
-
-                                if (res.ok) {
-                                    closeModal('createProjectModal');
-                                    loadDashboard();
-                                    loadProjects();
-                                    e.target.reset();
-                                } else { alert("Failed to create project"); }
-                            } catch (err) { console.error(err); }
-                        }
-
-                        async function openProjectDetails(id) {
-                            currentProjectId = id;
-                            openModal('projectDetailsModal');
-                            socket.emit("joinProject", id);
-
-                            try {
-                                const [projectRes, tasksRes, membersRes, messagesRes] = await Promise.all([
-                                    fetch(`${API_BASE}/projects/${id}`, { headers: { Authorization: `Bearer ${token}` } }),
-                                    fetch(`${API_BASE}/projects/${id}/tasks`, { headers: { Authorization: `Bearer ${token}` } }),
-                                    fetch(`${API_BASE}/projects/${id}/members`, { headers: { Authorization: `Bearer ${token}` } }),
-                                    fetch(`${API_BASE}/projects/${id}/messages`, { headers: { Authorization: `Bearer ${token}` } })
-                                ]);
-
-                                if (projectRes.ok) {
-                                    const project = await projectRes.json();
-                                    document.getElementById("modalTitle").textContent = project.title;
-                                    document.getElementById("modalDesc").textContent = project.description;
-                                }
-
-                                if (tasksRes.ok) {
-                                    const tasks = await tasksRes.json();
-                                    renderModalTasks(tasks);
-                                }
-
-                                if (membersRes.ok) {
-                                    const members = await membersRes.json();
-                                    renderModalMembers(members);
-                                }
-
-                                if (messagesRes.ok) {
-                                    const messages = await messagesRes.json();
-                                    renderChatMessages(messages);
-                                }
-
-                            } catch (err) { console.error(err); }
-                        }
-
-                        function renderModalTasks(tasks) {
-                            const container = document.getElementById("modalTaskList");
-                            container.innerHTML = "";
-                            tasks.forEach(task => {
-                                const item = document.createElement("div");
-                                item.className = `task-item priority-${task.priority ? task.priority.toLowerCase() : 'medium'}`;
-                                item.innerHTML = `
-            <div>
-                <div style="font-weight:600;">${task.title}</div>
-                <div style="font-size:12px;color:#666;">${task.status}</div>
-            </div>
-            <div class="task-actions">
-                 <button class="btn-sm" onclick="deleteTask('${task._id}')">🗑</button>
-            </div>
-        `;
-                                container.appendChild(item);
-                            });
-                        }
-
-                        function renderModalMembers(members) {
-                            const container = document.getElementById("modalMemberList");
-                            container.innerHTML = "";
-                            members.forEach(m => {
-                                const item = document.createElement("div");
-                                item.className = "member-pill";
-                                item.innerHTML = `<span>${m.name}</span>`;
-                                if (user.role === 'admin') {
-                                    item.innerHTML += `<span style="cursor:pointer;" onclick="removeMember('${m._id}')">&times;</span>`;
-                                }
-                                container.appendChild(item);
-                            });
-                        }
-
-                        function renderChatMessages(messages) {
-                            const container = document.getElementById("chatMessages");
-                            container.innerHTML = "";
-                            messages.forEach(msg => appendChatMessage(msg));
-                            container.scrollTop = container.scrollHeight;
-                        }
-
-                        function appendChatMessage(data) {
-                            const container = document.getElementById("chatMessages");
-                            const div = document.createElement("div");
-                            div.className = "message";
-
-                            // Determine ownership
-                            const senderId = typeof data.sender === 'object' ? data.sender._id : data.sender;
-                            const isSelf = senderId === user.id || data.userId === user.id;
-
-                            if (isSelf) {
-                                div.classList.add("self");
-                            } else {
-                                div.classList.add("other");
-                            }
-
-                            div.textContent = data.message || data.content;
-                            container.appendChild(div);
-                            container.scrollTop = container.scrollHeight;
-                        }
-
-                        async function createTask(e) {
-                            e.preventDefault();
-                            const title = document.getElementById("newTaskTitle").value;
-                            const desc = document.getElementById("newTaskDesc").value;
-                            const priority = document.getElementById("newTaskPriority").value;
-                            const dueDate = document.getElementById("newTaskDue").value;
-
-                            try {
-                                const res = await fetch(`${API_BASE}/projects/${currentProjectId}/tasks`, {
-                                    method: "POST",
-                                    headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
-                                    body: JSON.stringify({ title, description: desc, priority, dueDate })
-                                });
-                                if (res.ok) {
-                                    closeModal('addTaskModal');
-                                    openProjectDetails(currentProjectId); // Refresh
-                                    e.target.reset();
-                                }
-                            } catch (err) { console.error(err); }
-                        }
-
-                        async function addMember(e) {
-                            e.preventDefault();
-                            const email = document.getElementById("newMemberEmail").value;
-                            try {
-                                const res = await fetch(`${API_BASE}/projects/${currentProjectId}/members`, {
-                                    method: "POST",
-                                    headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
-                                    body: JSON.stringify({ email })
-                                });
-                                if (res.ok) {
-                                    closeModal('addMemberModal');
-                                    openProjectDetails(currentProjectId);
-                                    e.target.reset();
-                                } else { alert("Failed in adding member"); }
-                            } catch (err) { console.error(err); }
-                        }
-
-                        async function deleteTask(taskId) {
-                            if (!confirm("Delete?")) return;
-                            try {
-                                await fetch(`${API_BASE}/tasks/${taskId}`, {
-                                    method: "DELETE",
-                                    headers: { Authorization: "Bearer " + token }
-                                });
-                                openProjectDetails(currentProjectId);
-                            } catch (err) { console.error(err); }
-                        }
-
-                        async function removeMember(memId) {
-                            if (!confirm("Remove?")) return;
-                            try {
-                                await fetch(`${API_BASE}/projects/${currentProjectId}/members/${memId}`, {
-                                    method: "DELETE",
-                                    headers: { Authorization: "Bearer " + token }
-                                });
-                                openProjectDetails(currentProjectId);
-                            } catch (err) { console.error(err); }
-                        }
-
-                        function toggleChat() {
-                            const popup = document.getElementById("chatPopup");
-                            if (popup.style.display === "flex") {
-                                popup.style.display = "none";
-                            } else {
-                                popup.style.display = "flex";
-                            }
-                        }
-
-                        function sendChatMessage() {
-                            const input = document.getElementById("chatInput");
-                            const message = input.value.trim();
-                            if (!message) return;
-
-                            if (!currentProjectId) {
-                                alert("Please open a project to chat.");
-                                return;
-                            }
-
-                            socket.emit("sendMessage", { projectId: currentProjectId, message });
-                            input.value = "";
-                        }
-
-                        socket.on("receiveMessage", (data) => {
-                            // Check if message belongs to current open project
-                            if (currentProjectId && (data.projectId === currentProjectId || data.project === currentProjectId)) {
-                                appendChatMessage(data);
-                            }
-                        });
-
-                        /* ================= HELPERS & INIT ================= */
-
-                        function animateValue(id, end) {
-                            const el = document.getElementById(id);
-                            let start = 0;
-                            const duration = 600;
-                            const step = Math.ceil(end / (duration / 16));
-                            const counter = setInterval(() => {
-                                start += step;
-                                if (start >= end) {
-                                    el.textContent = end;
-                                    clearInterval(counter);
-                                } else {
-                                    el.textContent = start;
-                                }
-                            }, 16);
-                        }
-
-                        window.onclick = function (event) {
-                            if (event.target.classList.contains('modal')) {
-                                event.target.style.display = "none";
-                            }
-                        }
-
-                        // Handle Back Button (bfcache)
-                        window.addEventListener('pageshow', function (event) {
-                            if (!localStorage.getItem("token")) {
-                                window.location.href = "index.html";
-                            }
-                        });
-
-                        async function initPage() {
-                            // Initialize Admin Link
-                            const token = localStorage.getItem("token");
-                            try {
-                                const res = await fetch("http://localhost:5000/api/dashboard", {
-                                    headers: { "Authorization": "Bearer " + token }
-                                });
-                                const data = await res.json();
-                                if (data.role === 'admin') {
-                                    document.getElementById('admin-users-link').style.display = 'block';
-                                }
-                            } catch (e) { console.error(e); }
-
-                            await loadDashboard();
-                            await loadProjects();
-                            await loadTeams();
-                            await loadDeadlines();
-
-
-
-                            // Handle URL Query Params (Auto-open project)
-                            const urlParams = new URLSearchParams(window.location.search);
-                            const projectId = urlParams.get('id');
-                            if (projectId) {
-                                openProjectDetails(projectId);
-                            }
-                        }
-
-                        initPage();
-
-                    </script>
-
 </body>
 
 </html>

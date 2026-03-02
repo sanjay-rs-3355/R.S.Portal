@@ -1,80 +1,131 @@
-const token = localStorage.getItem("token");
+// ===== CONFIG =====
+const API_BASE_URL = "http://localhost:5000";
 
-const socket = io("http://localhost:5000", {
-    auth: {
-        token: token
+// ===== AUTH UTILS =====
+function parseJwt(token) {
+    try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(
+            atob(base64)
+                .split('')
+                .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+                .join('')
+        );
+        return JSON.parse(jsonPayload);
+    } catch (e) {
+        return null;
     }
-});
-
-let currentProjectId = null;
-let typingTimeout;
-
-socket.on("connect", () => {
-    console.log("Connected to server");
-});
-
-socket.on("receiveMessage", (data) => {
-    const messagesDiv = document.getElementById("messages");
-
-    const msg = document.createElement("div");
-    msg.textContent = `User ${data.userId}: ${data.message}`;
-
-    messagesDiv.appendChild(msg);
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
-});
-
-socket.on("onlineUsers", (users) => {
-    const list = document.getElementById("onlineUsers");
-    list.innerHTML = "";
-
-    users.forEach(user => {
-        const li = document.createElement("li");
-        li.textContent = "User " + user;
-        list.appendChild(li);
-    });
-});
-
-socket.on("userTyping", (userId) => {
-    document.getElementById("typingStatus").textContent =
-        `User ${userId} is typing...`;
-});
-
-socket.on("userStoppedTyping", () => {
-    document.getElementById("typingStatus").textContent = "";
-});
-
-function joinProject() {
-    currentProjectId = document.getElementById("projectId").value;
-    socket.emit("joinProject", currentProjectId);
 }
 
-function sendMessage() {
-    const input = document.getElementById("messageInput");
-    const message = input.value;
-
-    socket.emit("sendMessage", {
-        projectId: currentProjectId,
-        message: message
-    });
-
-    input.value = "";
-    socket.emit("stopTyping");
+function requireAuth() {
+    const token = localStorage.getItem("token");
+    if (!token) {
+        window.location.href = "index.html";
+        return null;
+    }
+    return token;
 }
 
-function handleTyping() {
-    socket.emit("typing");
+function handleDashboardAccess(expectedRole, allowAll = false) {
+    const token = requireAuth();
+    if (!token) return;
 
-    clearTimeout(typingTimeout);
+    const user = parseJwt(token);
 
-    typingTimeout = setTimeout(() => {
-        socket.emit("stopTyping");
-    }, 1000);
+    if (!user) {
+        logout();
+        return null;
+    }
+
+    // If allowAll is true, we just return the user (assuming they are authenticated)
+    if (allowAll) return user;
+
+    // Strict Role Check
+    if (user.role !== expectedRole) {
+        // Redirect to their correct dashboard
+        window.location.href =
+            user.role === 'admin'
+                ? 'admin-dashboard.html'
+                : 'member-dashboard.html';
+        return null;
+    }
+    return user;
 }
-function toggleChat() {
-    const popup = document.getElementById("chatPopup");
-    popup.classList.toggle("active");
-}
+
 function logout() {
     localStorage.clear();
-    window.location.replace("index.html");
+    window.location.href = "index.html";
+}
+
+// ===== API HELPERS =====
+async function apiGet(endpoint) {
+    const token = localStorage.getItem("token");
+    if (!token) {
+        window.location.href = "index.html";
+        return null;
+    }
+
+    try {
+        const res = await fetch(`${API_BASE_URL}${endpoint}`, {
+            headers: { "Authorization": "Bearer " + token }
+        });
+
+        if (res.status === 401) {
+            logout();
+            return null;
+        }
+
+        if (!res.ok) {
+            throw new Error(`API Error: ${res.status}`);
+        }
+
+        return await res.json();
+    } catch (error) {
+        console.error("API Fetch Error:", error);
+        return null;
+    }
+}
+
+// ===== TIME UTILS =====
+function getTimeAgo(date) {
+    const seconds = Math.floor((new Date() - new Date(date)) / 1000);
+
+    let interval = seconds / 31536000;
+    if (interval > 1) return Math.floor(interval) + " years ago";
+
+    interval = seconds / 2592000;
+    if (interval > 1) return Math.floor(interval) + " months ago";
+
+    interval = seconds / 86400;
+    if (interval > 1) return Math.floor(interval) + " days ago";
+
+    interval = seconds / 3600;
+    if (interval > 1) return Math.floor(interval) + " hours ago";
+
+    interval = seconds / 60;
+    if (interval > 1) return Math.floor(interval) + " mins ago";
+
+    return Math.floor(seconds) + " seconds ago";
+}
+
+// ===== SOCKET & CHAT (Keep existing logic) =====
+const token = localStorage.getItem("token");
+let socket;
+
+if (token) {
+    socket = io(API_BASE_URL, {
+        auth: { token: token }
+    });
+
+    socket.on("connect", () => {
+        console.log("Connected to command center");
+    });
+
+    // Global Chat Listeners (if any)
+}
+
+function toggleChat() {
+    const popup = document.getElementById("chatPopup");
+    if (popup) popup.classList.toggle("active");
 }

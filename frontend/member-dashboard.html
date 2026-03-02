@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Dashboard - R.S.Portal</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="dashboard.css">
+    <link rel="stylesheet" href="users.css">
+    <link rel="stylesheet" href="chat.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+    <div class="layout">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+                <img src="assets/logo.jpg" alt="R.S.Portal Logo">
+                <span>R.S.Portal</span>
+            </div>
+            <ul class="nav">
+                <li class="active" id="navDashboard">
+                    <i class="fa-solid fa-border-all"></i> &nbsp; Dashboard
+                </li>
+
+                <li id="navProjects">
+                    <i class="fa-regular fa-folder"></i> &nbsp; Projects
+                </li>
+
+                <li id="navTasks">
+                    <i class="fa-regular fa-circle-check"></i> &nbsp; Tasks
+                </li>
+            </ul>
+            <div class="bottom-menu">
+                <div id="navLogout" style="cursor: pointer;"><i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    &nbsp; Log Out</div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main">
+            <!-- Topbar -->
+            <div class="topbar">
+                <div class="top-left">
+                    <div class="breadcrumb">Pages / <span class="crumb-active">Dashboard</span></div>
+                    <div class="page-subtitle">Welcome back, <span id="username-display">User</span></div>
+                </div>
+                <div class="top-right">
+                    <div id="admin-view-btn-container" style="display:none; margin-right:15px;">
+                        <button id="btnAdminView" class="btn-sm" style="background:#3b82f6; color:white;">
+                            <i class="fa-solid fa-shield-halved"></i> Admin View
+                        </button>
+                    </div>
+                    <div class="search-wrapper">
+                        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                        <input type="text" class="search" placeholder="Search type of keywords">
+                    </div>
+                    <div class="notification">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="notif-dot"></span>
+                    </div>
+                    <div class="user">
+                        <div class="user-avatar" id="user-avatar"></div>
+                        <span class="arrow"><i class="fa-solid fa-chevron-down"></i></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Content -->
+            <div class="dashboard-area" id="dashboard-section">
+
+                <!-- Welcome Header -->
+                <div style="margin-bottom: 25px;">
+                    <h2 style="font-size: 24px; color: #1e293b; margin-bottom: 5px;">Dashboard</h2>
+                    <p style="color: #64748b;">Overview of your projects and tasks</p>
+                </div>
+
+                <!-- ROW 1: STATS (4 Cards) -->
+                <div class="stats-grid-4">
+                    <!-- My Projects -->
+                    <div class="stat-card-modern">
+                        <div class="stat-content">
+                            <div class="stat-value" id="myProjects">0</div>
+                            <div class="stat-label">My Projects</div>
+                        </div>
+                        <div class="stat-icon-box bg-blue">
+                            <i class="fa-regular fa-folder-open"></i>
+                        </div>
+                    </div>
+
+                    <!-- My Tasks -->
+                    <div class="stat-card-modern">
+                        <div class="stat-content">
+                            <div class="stat-value" id="myTasks">0</div>
+                            <div class="stat-label">My Tasks</div>
+                        </div>
+                        <div class="stat-icon-box bg-purple">
+                            <i class="fa-solid fa-list-check"></i>
+                        </div>
+                    </div>
+
+                    <!-- Completed -->
+                    <div class="stat-card-modern">
+                        <div class="stat-content">
+                            <div class="stat-value" id="myCompleted">0</div>
+                            <div class="stat-label">Completed</div>
+                        </div>
+                        <div class="stat-icon-box bg-green">
+                            <i class="fa-regular fa-circle-check"></i>
+                        </div>
+                    </div>
+
+                    <!-- Team Size (Contextual) -->
+                    <div class="stat-card-modern">
+                        <div class="stat-content">
+                            <div class="stat-value" id="teamSize">0</div>
+                            <div class="stat-label">Team Members</div>
+                        </div>
+                        <div class="stat-icon-box bg-orange">
+                            <i class="fa-solid fa-users"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ROW 2: CHARTS (2 Columns) -->
+                <div class="charts-grid-2" style="margin-top: 25px;">
+                    <!-- Project Stats -->
+                    <div class="card-box">
+                        <div class="card-header-clean">
+                            <h3>Project Stats</h3>
+                            <select class="select-sm">
+                                <option>This Week</option>
+                            </select>
+                        </div>
+                        <div style="height: 250px; position: relative;">
+                            <canvas id="projectStatsChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Performance -->
+                    <div class="card-box">
+                        <div class="card-header-clean">
+                            <h3>Performance</h3>
+                            <select class="select-sm">
+                                <option>This Week</option>
+                            </select>
+                        </div>
+                        <div style="height: 250px; position: relative;">
+                            <canvas id="performanceChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ROW 3: ACTIVITY & DEADLINES -->
+                <div class="bottom-grid-2" style="margin-top: 25px;">
+                    <!-- Recent Activity -->
+                    <div class="card-box">
+                        <div class="card-header-clean">
+                            <h3>Recent Activity</h3>
+                            <span class="sub-label">Latest updates</span>
+                        </div>
+                        <div class="timeline-feed" id="activity-list">
+                            <p>Loading activity...</p>
+                        </div>
+                    </div>
+
+                    <!-- Upcoming Deadlines -->
+                    <div class="card-box">
+                        <div class="card-header-clean">
+                            <h3>Upcoming Deadlines</h3>
+                            <span class="sub-label">Due soon</span>
+                        </div>
+                        <div class="timeline-feed" id="deadline-list">
+                            <p>Loading deadlines...</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script src="dashboard-common.js"></script>
+    <script src="member-dashboard.js"></script>
