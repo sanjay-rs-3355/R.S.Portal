@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>My Profile - R.S.Portal</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="dashboard.css">
+    <link rel="stylesheet" href="users.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <style>
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.75);
+            --glass-border: rgba(255, 255, 255, 0.5);
+            --card-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+        }
+
+        .profile-layout-grid {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 28px;
+            align-items: start;
+        }
+
+        /* --- Left Column: Abstract Profile Card --- */
+        .profile-card-premium {
+            background: linear-gradient(165deg, #1e293b 0%, #0f172a 100%);
+            border-radius: 30px;
+            padding: 40px 30px;
+            color: white;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(15, 23, 42, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: slideInLeft 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .profile-card-premium::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .avatar-container {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 24px;
+        }
+
+        .profile-avatar-premium {
+            width: 130px;
+            height: 130px;
+            border-radius: 38px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 56px;
+            font-weight: 800;
+            color: white;
+            box-shadow: 0 15px 35px rgba(99, 102, 241, 0.4);
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .avatar-container:hover .profile-avatar-premium {
+            transform: scale(1.05) rotate(-3deg);
+            box-shadow: 0 20px 45px rgba(99, 102, 241, 0.5);
+        }
+
+        .status-badge-online {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            width: 22px;
+            height: 22px;
+            background: #10b981;
+            border: 4px solid #1e293b;
+            border-radius: 50%;
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
+        }
+
+        .profile-details-name {
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 6px;
+            letter-spacing: -0.5px;
+        }
+
+        .profile-details-role {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #94a3b8;
+            margin-bottom: 30px;
+            display: block;
+        }
+
+        .profile-quick-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .q-stat {
+            text-align: center;
+        }
+
+        .q-stat-val {
+            display: block;
+            font-size: 20px;
+            font-weight: 800;
+            color: white;
+        }
+
+        .q-stat-lbl {
+            font-size: 11px;
+            color: #64748b;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        /* --- Right Column: Settings Glass Card --- */
+        .settings-content-premium {
+            background: var(--glass-bg);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border-radius: 30px;
+            padding: 40px;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--card-shadow);
+            animation: slideInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.1s backwards;
+        }
+
+        .settings-section-title {
+            font-size: 20px;
+            font-weight: 800;
+            color: #1e293b;
+            margin-bottom: 28px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .settings-section-title i {
+            color: var(--primary-color);
+            background: rgba(99, 102, 241, 0.1);
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .premium-form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .full-row {
+            grid-column: 1 / -1;
+        }
+
+        .input-group-premium {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .input-group-premium label {
+            font-size: 13px;
+            font-weight: 700;
+            color: #475569;
+            margin-left: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .input-premium {
+            padding: 14px 20px;
+            border-radius: 16px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            font-size: 15px;
+            font-weight: 600;
+            color: #1e293b;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+        }
+
+        .input-premium:focus {
+            border-color: var(--primary-color);
+            background: white;
+            box-shadow: 0 0 0 5px rgba(99, 102, 241, 0.1), 0 8px 16px rgba(0, 0, 0, 0.05);
+            outline: none;
+            transform: translateY(-2px);
+        }
+
+        .input-premium:disabled {
+            background: #f1f5f9;
+            color: #94a3b8;
+            border-color: #f1f5f9;
+            cursor: not-allowed;
+        }
+
+        .select-premium {
+            padding: 14px 20px;
+            border-radius: 16px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            font-size: 15px;
+            font-weight: 600;
+            color: #1e293b;
+            cursor: pointer;
+            transition: all 0.3s;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 20px center;
+            background-size: 18px;
+        }
+
+        .select-premium:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 5px rgba(99, 102, 241, 0.1);
+        }
+
+        .btn-submit-premium {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 18px;
+            font-size: 16px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
+            margin-top: 10px;
+        }
+
+        .btn-submit-premium:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(99, 102, 241, 0.4);
+            filter: brightness(1.1);
+        }
+
+        .divider-premium {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #e2e8f0, transparent);
+            margin: 40px 0;
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-40px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Stats Badge and Animation */
+        .profile-badge-neon {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 6px 14px;
+            border-radius: 50px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #d1d5db;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="toast-container"></div>
+    <div class="layout">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+                <img src="assets/logo.jpg" alt="R.S.Portal Logo">
+                <span>R.S.Portal</span>
+            </div>
+            <ul class="nav">
+                <li id="navDashboard">
+                    <i class="fa-solid fa-border-all"></i> &nbsp; Dashboard
+                </li>
+
+                <li id="navProjects">
+                    <i class="fa-regular fa-folder"></i> &nbsp; Projects
+                </li>
+
+                <li id="navTasks" style="display:none;">
+                    <i class="fa-regular fa-circle-check"></i> &nbsp; Tasks
+                </li>
+
+                <li id="navUsers" style="display:none;">
+                    <i class="fa-solid fa-users"></i> &nbsp; Users
+                </li>
+                <li id="navDbManager" style="display:none;">
+                    <i class="fa-solid fa-database"></i> &nbsp; DB Manager
+                </li>
+            </ul>
+        </div>
+
+        <div class="main">
+            <div class="topbar">
+                <div class="top-left">
+                    <div class="breadcrumb">Pages / <span class="crumb-active">Profile</span></div>
+                    <div class="page-subtitle">Personal Settings</div>
+                </div>
+                <div class="top-right">
+                    <div class="search-wrapper">
+                        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                        <input type="text" class="search" placeholder="Search settings...">
+                    </div>
+                    <div class="notification" id="notifBtn" style="cursor: pointer; position: relative;">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="notif-dot" id="notifDot" style="display: none;"></span>
+                        <!-- Notification Dropdown -->
+                        <div class="notif-dropdown" id="notifDropdown">
+                            <div class="notif-header">
+                                <span>Notifications</span>
+                                <button id="markAllRead" class="btn-text-sm">Clear All</button>
+                            </div>
+                            <div class="notif-list" id="notifList">
+                                <p class="notif-empty">No new notifications</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="topbar-divider"></div>
+                    <div class="user" id="userMenuBtn" style="cursor: pointer; position: relative;">
+                        <div class="user-avatar" id="user-avatar"></div>
+                        <span id="usernameDisplay"
+                            style="font-weight: 600; color: var(--text-color); margin-right: 4px;">User</span>
+                        <span class="arrow"><i class="fa-solid fa-chevron-down"></i></span>
+                        <!-- User Dropdown -->
+                        <div class="user-dropdown" id="userDropdown">
+                            <div class="dropdown-item" onclick="window.location.href='profile.html'">
+                                <i class="fa-regular fa-user"></i> My Profile
+                            </div>
+                            <div class="dropdown-item" onclick="logout()">
+                                <i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-area" style="padding: 35px 40px;">
+                <!-- WELCOME BANNER -->
+                <div class="dash-welcome-banner" style="margin-bottom: 35px; min-height: 120px;">
+                    <div>
+                        <h2 class="dash-welcome-title">User Account Portfolio</h2>
+                        <p class="dash-welcome-sub">Manage your professional identity and workspace preferences</p>
+                    </div>
+                    <div class="dash-welcome-date" id="dash-date">-- --</div>
+                </div>
+
+                <div class="profile-layout-grid">
+                    <!-- LEFT COLUMN: PROFILE CARD -->
+                    <div class="profile-card-premium reveal">
+                        <div class="profile-badge-neon"><i class="fa-solid fa-shield-check"></i> VERIFIED ACCOUNT</div>
+                        <div class="avatar-container">
+                            <div class="profile-avatar-premium" id="profile-avatar">?</div>
+                            <div class="status-badge-online"></div>
+                        </div>
+
+                        <div class="profile-details-main">
+                            <h2 class="profile-details-name" id="display-name">User Name</h2>
+                            <span class="profile-details-role" id="display-role-text">Senior Developer</span>
+                            <p id="display-email" style="color: #64748b; font-size: 14px; margin-bottom: 35px;">
+                                user@example.com</p>
+
+                            <div class="profile-quick-stats">
+                                <div class="q-stat">
+                                    <span class="q-stat-val" id="stat-projects">12</span>
+                                    <span class="q-stat-lbl">Projects</span>
+                                </div>
+                                <div class="q-stat">
+                                    <span class="q-stat-val" id="stat-tasks">48</span>
+                                    <span class="q-stat-lbl">Completed</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT COLUMN: SETTINGS FORM -->
+                    <div class="settings-content-premium reveal">
+                        <form id="profileForm">
+                            <h3 class="settings-section-title">
+                                <i class="fa-solid fa-user-gear"></i>
+                                General Identity
+                            </h3>
+
+                            <div class="premium-form-grid">
+                                <div class="input-group-premium">
+                                    <label for="profileName">Full Display Name</label>
+                                    <input type="text" id="profileName" class="input-premium" placeholder="Your name"
+                                        required>
+                                </div>
+                                <div class="input-group-premium">
+                                    <label for="profileEmail">Verified Email</label>
+                                    <input type="email" id="profileEmail" class="input-premium" disabled>
+                                </div>
+                                <div class="input-group-premium full-row">
+                                    <label for="profileDesignation">Professional Designation</label>
+                                    <select id="profileDesignation" class="select-premium">
+                                        <option value="Designer">Designer</option>
+                                        <option value="UI-Designer">UI-Designer</option>
+                                        <option value="Project Manager">Project Manager</option>
+                                        <option value="Tester">Tester</option>
+                                        <option value="Full-Stack Developer">Full-Stack Developer</option>
+                                        <option value="Frontend Developer">Frontend Developer</option>
+                                        <option value="Backend Developer">Backend Developer</option>
+                                        <option value="Member">Member</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="divider-premium"></div>
+
+                            <h3 class="settings-section-title">
+                                <i class="fa-solid fa-lock"></i>
+                                Access & Security
+                            </h3>
+
+                            <div class="premium-form-grid">
+                                <div class="input-group-premium full-row">
+                                    <label for="profilePassword">Update Security Key (Password)</label>
+                                    <input type="password" id="profilePassword" class="input-premium"
+                                        placeholder="Enter new password to update ...">
+                                    <p style="font-size: 11px; color: #94a3b8; margin-top: 5px;">Leave blank if you
+                                        don't
+                                        wish to change your access credentials.</p>
+                                </div>
+                            </div>
+
+                            <div style="margin-top: 40px; display: flex; justify-content: flex-end;">
+                                <button type="submit" class="btn-submit-premium">
+                                    <span>Apply Changes</span>
+                                    <i class="fa-solid fa-circle-check"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="app.js"></script>
+    <script src="profile.js"></script>
+</body>
+
+</html>

@@ -1,6 +1,6 @@
 const db = require('../config/db');
 
-const getDashboard = async (req, res) => {
+const getDashboard = async (req, res, next) => {
     const userId = req.user.id;
     const role = req.user.role;
 
@@ -16,128 +16,87 @@ const getDashboard = async (req, res) => {
         const userName = user.name;
 
         if (role === 'admin') {
-
-            const [[totalUsers]] = await db.execute(
-                'SELECT COUNT(*) AS count FROM users'
-            );
-
-            const [[totalProjects]] = await db.execute(
-                'SELECT COUNT(*) AS count FROM projects WHERE is_deleted = FALSE'
-            );
-
-            const [[totalTasks]] = await db.execute(
-                'SELECT COUNT(*) AS count FROM tasks'
-            );
-
-            const [[completedTasks]] = await db.execute(
-                "SELECT COUNT(*) AS count FROM tasks WHERE status = 'completed'"
-            );
-
-            const [[pendingTasks]] = await db.execute(
-                "SELECT COUNT(*) AS count FROM tasks WHERE status = 'pending'"
-            );
-
-            const [[inProgressTasks]] = await db.execute(
-                "SELECT COUNT(*) AS count FROM tasks WHERE status = 'in_progress'"
-            );
-
-            const [[highPriority]] = await db.execute(
-                "SELECT COUNT(*) AS count FROM tasks WHERE priority = 'high'"
-            );
-
-            const [[mediumPriority]] = await db.execute(
-                "SELECT COUNT(*) AS count FROM tasks WHERE priority = 'medium'"
-            );
-
-            const [[lowPriority]] = await db.execute(
-                "SELECT COUNT(*) AS count FROM tasks WHERE priority = 'low'"
-            );
-
-            const [[overdueTasks]] = await db.execute(
-                "SELECT COUNT(*) AS count FROM tasks WHERE deadline < CURDATE() AND status != 'completed'"
-            );
+            const [[stats]] = await db.execute(`
+                SELECT 
+                    (SELECT COUNT(*) FROM users) AS totalUsers,
+                    (SELECT COUNT(*) FROM projects WHERE is_deleted = FALSE) AS totalProjects,
+                    COUNT(*) AS totalTasks,
+                    SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) AS completedTasks,
+                    SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) AS pendingTasks,
+                    SUM(CASE WHEN status = 'in_progress' THEN 1 ELSE 0 END) AS inProgressTasks,
+                    SUM(CASE WHEN status = 'review' THEN 1 ELSE 0 END) AS reviewTasks,
+                    SUM(CASE WHEN priority = 'high' THEN 1 ELSE 0 END) AS highPriorityTasks,
+                    SUM(CASE WHEN priority = 'medium' THEN 1 ELSE 0 END) AS mediumPriorityTasks,
+                    SUM(CASE WHEN priority = 'low' THEN 1 ELSE 0 END) AS lowPriorityTasks,
+                    SUM(CASE WHEN deadline < CURDATE() AND status != 'completed' THEN 1 ELSE 0 END) AS overdueTasks
+                FROM tasks t
+                JOIN projects p ON t.project_id = p.id
+                WHERE p.is_deleted = FALSE
+            `);
 
             return res.json({
                 role: 'admin',
                 name: userName,
-                totalUsers: totalUsers.count,
-                totalProjects: totalProjects.count,
-                totalTasks: totalTasks.count,
-                completedTasks: completedTasks.count,
-                pendingTasks: pendingTasks.count,
-                inProgressTasks: inProgressTasks.count,
-                highPriorityTasks: highPriority.count,
-                mediumPriorityTasks: mediumPriority.count,
-                lowPriorityTasks: lowPriority.count,
-                overdueTasks: overdueTasks.count
+                totalUsers: Number(stats.totalUsers || 0),
+                totalProjects: Number(stats.totalProjects || 0),
+                totalTasks: Number(stats.totalTasks || 0),
+                completedTasks: Number(stats.completedTasks || 0),
+                pendingTasks: Number(stats.pendingTasks || 0),
+                inProgressTasks: Number(stats.inProgressTasks || 0),
+                reviewTasks: Number(stats.reviewTasks || 0),
+                highPriorityTasks: Number(stats.highPriorityTasks || 0),
+                mediumPriorityTasks: Number(stats.mediumPriorityTasks || 0),
+                lowPriorityTasks: Number(stats.lowPriorityTasks || 0),
+                overdueTasks: Number(stats.overdueTasks || 0)
             });
 
         } else {
+            const [[stats]] = await db.execute(`
+                SELECT 
+                    (SELECT COUNT(*) FROM project_members WHERE user_id = ?) AS joinedProjects,
+                    COUNT(*) AS totalAssigned,
+                    SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) AS completedTasks,
+                    SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) AS pendingTasks,
+                    SUM(CASE WHEN status = 'in_progress' THEN 1 ELSE 0 END) AS inProgressTasks,
+                    SUM(CASE WHEN status = 'review' THEN 1 ELSE 0 END) AS reviewTasks,
+                    SUM(CASE WHEN deadline < CURDATE() AND status != 'completed' THEN 1 ELSE 0 END) AS overdueTasks
+                FROM tasks t
+                JOIN projects p ON t.project_id = p.id
+                WHERE t.assigned_to = ? AND p.is_deleted = FALSE
+            `, [userId, userId]);
 
-            const [[joinedProjects]] = await db.execute(
-                'SELECT COUNT(*) AS count FROM project_members WHERE user_id = ?',
-                [userId]
-            );
-
-            const [[assignedTasks]] = await db.execute(
-                'SELECT COUNT(*) AS count FROM tasks WHERE assigned_to = ?',
-                [userId]
-            );
-
-            const [[completedTasks]] = await db.execute(
-                "SELECT COUNT(*) AS count FROM tasks WHERE assigned_to = ? AND status = 'completed'",
-                [userId]
-            );
-
-            const [[pendingTasks]] = await db.execute(
-                "SELECT COUNT(*) AS count FROM tasks WHERE assigned_to = ? AND status = 'pending'",
-                [userId]
-            );
-
-            const [[inProgressTasks]] = await db.execute(
-                "SELECT COUNT(*) AS count FROM tasks WHERE assigned_to = ? AND status = 'in_progress'",
-                [userId]
-            );
-
-            const [[overdueTasks]] = await db.execute(
-                "SELECT COUNT(*) AS count FROM tasks WHERE assigned_to = ? AND deadline < CURDATE() AND status != 'completed'",
-                [userId]
-            );
-
-            const totalAssigned = assignedTasks.count;
-            const completed = completedTasks.count;
-            const pending = pendingTasks.count;
-            const inProgress = inProgressTasks.count;
-
-            let progress = [0, 0, 0];
+            const { totalAssigned, completedTasks, pendingTasks, inProgressTasks, reviewTasks } = stats;
+            let progress = [0, 0, 0, 0];
             if (totalAssigned > 0) {
                 progress = [
-                    Math.round((completed / totalAssigned) * 100),
-                    Math.round((pending / totalAssigned) * 100),
-                    Math.round((inProgress / totalAssigned) * 100)
+                    Math.round((completedTasks / totalAssigned) * 100),
+                    Math.round((pendingTasks / totalAssigned) * 100),
+                    Math.round((inProgressTasks / totalAssigned) * 100),
+                    Math.round((reviewTasks / totalAssigned) * 100)
                 ];
             }
 
             return res.json({
                 role: 'member',
                 name: userName,
-                joinedProjects: joinedProjects.count,
-                assignedTasks: assignedTasks.count,
-                completedTasks: completedTasks.count,
-                pendingTasks: pendingTasks.count,
-                inProgressTasks: inProgressTasks.count,
-                overdueTasks: overdueTasks.count,
-                progress // [Completed %, Pending %, In Progress %]
+                joinedProjects: Number(stats.joinedProjects || 0),
+                assignedTasks: Number(totalAssigned || 0),
+                completedTasks: Number(completedTasks || 0),
+                pendingTasks: Number(pendingTasks || 0),
+                inProgressTasks: Number(inProgressTasks || 0),
+                reviewTasks: Number(reviewTasks || 0),
+                overdueTasks: Number(stats.overdueTasks || 0),
+                totalUsers: Number(stats.joinedProjects || 0), // team members count (project-based)
+                progress: progress.map(p => Number(p || 0))
             });
         }
 
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        next(error);
     }
 };
 
-const getUserProjects = async (req, res) => {
+const getUserProjects = async (req, res, next) => {
     try {
         const userId = req.user.id;
         const role = req.user.role;
@@ -146,24 +105,28 @@ const getUserProjects = async (req, res) => {
         let params;
 
         if (role === 'admin') {
-            // Admin sees ALL projects with progress
             query = `
                 SELECT p.*, 
-                (SELECT COUNT(*) FROM tasks t WHERE t.project_id = p.id) as total_tasks,
-                (SELECT COUNT(*) FROM tasks t WHERE t.project_id = p.id AND t.status = 'completed') as completed_tasks
+                    COUNT(t.id) as total_tasks,
+                    SUM(CASE WHEN t.status = 'completed' THEN 1 ELSE 0 END) as completed_tasks
                 FROM projects p
+                LEFT JOIN tasks t ON p.id = t.project_id
                 WHERE p.is_deleted = FALSE
+                GROUP BY p.id
+                ORDER BY p.last_activity_at DESC
             `;
             params = [];
         } else {
-            // Regular user only sees joined projects
             query = `
                 SELECT p.*, 
-                (SELECT COUNT(*) FROM tasks t WHERE t.project_id = p.id) as total_tasks,
-                (SELECT COUNT(*) FROM tasks t WHERE t.project_id = p.id AND t.status = 'completed') as completed_tasks
+                    COUNT(t.id) as total_tasks,
+                    SUM(CASE WHEN t.status = 'completed' THEN 1 ELSE 0 END) as completed_tasks
                 FROM projects p
                 JOIN project_members pm ON p.id = pm.project_id
+                LEFT JOIN tasks t ON p.id = t.project_id
                 WHERE pm.user_id = ? AND p.is_deleted = FALSE
+                GROUP BY p.id
+                ORDER BY p.last_activity_at DESC
             `;
             params = [userId];
         }
@@ -178,12 +141,11 @@ const getUserProjects = async (req, res) => {
 
         res.json(projectsWithProgress);
     } catch (error) {
-        console.error("getUserProjects error:", error);
-        res.status(500).json({ message: "Server error" });
+        next(error);
     }
 };
 
-const getUserTeams = async (req, res) => {
+const getUserTeams = async (req, res, next) => {
     try {
         const userId = req.user.id;
 
@@ -213,52 +175,102 @@ const getUserTeams = async (req, res) => {
 
         res.json(teams);
     } catch (error) {
-        console.error("getUserTeams error:", error);
-        res.status(500).json({ message: "Server error" });
+        next(error);
     }
 };
 
-const getUpcomingDeadlines = async (req, res) => {
+const getUpcomingDeadlines = async (req, res, next) => {
     try {
         const userId = req.user.id;
+        const role = req.user.role;
+        const projectId = req.query.projectId; // Optional filter
 
-        const [tasks] = await db.execute(`
-            SELECT t.id, t.title, t.deadline, p.title as projectTitle
-            FROM tasks t
-            JOIN projects p ON t.project_id = p.id
-            WHERE t.assigned_to = ? 
-            AND t.status != 'completed' 
-            AND t.deadline IS NOT NULL
-            AND t.deadline >= CURDATE()
-            ORDER BY t.deadline ASC
-            LIMIT 5
-        `, [userId]);
+        // Admins see all upcoming deadlines; members only see their own
+        let query;
+        let params = [];
+        if (role === 'admin') {
+            query = `
+                SELECT t.id, t.title, t.deadline, t.priority, p.title as projectTitle, u.name as assignedToName
+                FROM tasks t
+                JOIN projects p ON t.project_id = p.id
+                LEFT JOIN users u ON t.assigned_to = u.id
+                WHERE t.status != 'completed'
+                AND t.deadline IS NOT NULL
+                AND t.deadline >= CURDATE()
+                ${projectId ? 'AND t.project_id = ?' : ''}
+                ORDER BY t.deadline ASC
+                LIMIT 100
+            `;
+            if (projectId) params.push(projectId);
+        } else {
+            if (projectId) {
+                query = `
+                    SELECT t.id, t.title, t.deadline, t.priority, p.title as projectTitle, u.name as assignedToName
+                    FROM tasks t
+                    JOIN projects p ON t.project_id = p.id
+                    LEFT JOIN users u ON t.assigned_to = u.id
+                    WHERE t.assigned_to = ? AND t.project_id = ?
+                    AND t.status != 'completed'
+                    AND t.deadline IS NOT NULL
+                    AND t.deadline >= CURDATE()
+                    ORDER BY t.deadline ASC
+                    LIMIT 100
+                `;
+                params = [userId, projectId];
+            } else {
+                query = `
+                    SELECT t.id, t.title, t.deadline, t.priority, p.title as projectTitle, u.name as assignedToName
+                    FROM tasks t
+                    JOIN projects p ON t.project_id = p.id
+                    LEFT JOIN users u ON t.assigned_to = u.id
+                    WHERE t.assigned_to = ?
+                    AND t.status != 'completed'
+                    AND t.deadline IS NOT NULL
+                    AND t.deadline >= CURDATE()
+                    ORDER BY t.deadline ASC
+                    LIMIT 100
+                `;
+                params = [userId];
+            }
+        }
+
+        const [tasks] = await db.execute(query, params);
 
         const formatted = tasks.map(t => {
-            const date = new Date(t.deadline);
+            // Use midnight UTC for both dates to get clean day difference
+            const deadline = new Date(t.deadline);
+            deadline.setHours(0, 0, 0, 0);
             const today = new Date();
-            const diffTime = Math.abs(date - today);
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            today.setHours(0, 0, 0, 0);
 
-            let remaining = "";
-            if (diffDays === 0) remaining = "Today";
-            else if (diffDays === 1) remaining = "Tomorrow";
-            else remaining = `${diffDays} Days`;
+            const diffMs = deadline - today;
+            const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+
+            let remaining;
+            if (diffDays === 0) remaining = 'Due Today';
+            else if (diffDays === 1) remaining = 'Tomorrow';
+            else if (diffDays < 0) remaining = `${Math.abs(diffDays)}d overdue`;
+            else remaining = `${diffDays} days left`;
+
+            const dateStr = deadline.toLocaleDateString('en-US', {
+                month: 'short', day: 'numeric', year: 'numeric'
+            });
 
             return {
                 ...t,
-                remaining
+                remaining,
+                dateStr,
+                diffDays
             };
         });
 
         res.json(formatted);
     } catch (error) {
-        console.error("getUpcomingDeadlines error:", error);
-        res.status(500).json({ message: "Server error" });
+        next(error);
     }
 };
 
-const getUserTasks = async (req, res) => {
+const getUserTasks = async (req, res, next) => {
     try {
         const userId = req.user.id;
 
@@ -267,18 +279,17 @@ const getUserTasks = async (req, res) => {
             FROM tasks t
             JOIN projects p ON t.project_id = p.id
             WHERE t.assigned_to = ?
-            ORDER BY t.deadline ASC
-        `, [userId]);
+                ORDER BY t.deadline ASC
+                    `, [userId]);
 
         res.json(tasks);
     } catch (error) {
-        console.error("getUserTasks error:", error);
-        res.status(500).json({ message: "Server error" });
+        next(error);
     }
 };
 
 
-const getRecentActivity = async (req, res) => {
+const getRecentActivity = async (req, res, next) => {
     try {
         const userId = req.user.id;
         const role = req.user.role;
@@ -293,8 +304,8 @@ const getRecentActivity = async (req, res) => {
                 LEFT JOIN projects p ON al.project_id = p.id
                 LEFT JOIN users u ON al.user_id = u.id
                 ORDER BY al.created_at DESC
-                LIMIT 10
-            `;
+                LIMIT 100
+                `;
             params = [];
         } else {
             query = `
@@ -302,23 +313,22 @@ const getRecentActivity = async (req, res) => {
                 FROM activity_logs al
                 LEFT JOIN projects p ON al.project_id = p.id
                 LEFT JOIN users u ON al.user_id = u.id
-                WHERE al.user_id = ? 
-                   OR al.project_id IN (SELECT project_id FROM project_members WHERE user_id = ?)
+                WHERE al.user_id = ?
+                OR al.project_id IN(SELECT project_id FROM project_members WHERE user_id = ?)
                 ORDER BY al.created_at DESC
-                LIMIT 10
-            `;
+                LIMIT 100
+                `;
             params = [userId, userId];
         }
 
         const [activities] = await db.execute(query, params);
         res.json(activities);
     } catch (error) {
-        console.error("getRecentActivity error:", error);
-        res.status(500).json({ message: "Server error" });
+        next(error);
     }
 };
 
-const getPerformanceStats = async (req, res) => {
+const getPerformanceStats = async (req, res, next) => {
     try {
         const userId = req.user.id;
         const role = req.user.role;
@@ -332,8 +342,8 @@ const getPerformanceStats = async (req, res) => {
 
         // Completed Tasks Query
         const [completedStats] = await db.execute(`
-            SELECT 
-                DATE_FORMAT(updated_at, '%Y-%m') as key_month,
+            SELECT
+            DATE_FORMAT(updated_at, '%Y-%m') as key_month,
                 DATE_FORMAT(updated_at, '%b %Y') as month,
                 COUNT(*) as count
             FROM tasks 
@@ -342,7 +352,7 @@ const getPerformanceStats = async (req, res) => {
               ${userCondition}
             GROUP BY key_month, month
             ORDER BY key_month ASC
-        `, params);
+                `, params);
 
         // Total Tasks Created (for Admin) or Assigned (for Member) Query
         const dateColumn = isMember ? 'created_at' : 'created_at'; // Both use created_at for trend
@@ -352,8 +362,8 @@ const getPerformanceStats = async (req, res) => {
         // If we want "Tasks Assigned To User", we check created_at of task where assigned_to = user.
 
         const [totalStats] = await db.execute(`
-            SELECT 
-                DATE_FORMAT(created_at, '%Y-%m') as key_month,
+            SELECT
+            DATE_FORMAT(created_at, '%Y-%m') as key_month,
                 DATE_FORMAT(created_at, '%b %Y') as month,
                 COUNT(*) as count
             FROM tasks 
@@ -361,7 +371,7 @@ const getPerformanceStats = async (req, res) => {
               ${userCondition}
             GROUP BY key_month, month
             ORDER BY key_month ASC
-        `, params);
+                `, params);
 
         // Merge and Format
         const months = [];
@@ -383,15 +393,14 @@ const getPerformanceStats = async (req, res) => {
             return found ? found.count : 0;
         });
 
-        res.json({ labels, completedData, totalData });
+        res.json({ labels, completedData, createdData: totalData });
 
     } catch (error) {
-        console.error("getPerformanceStats error:", error);
-        res.status(500).json({ message: "Server error" });
+        next(error);
     }
 };
 
-const getUserGrowth = async (req, res) => {
+const getUserGrowth = async (req, res, next) => {
     try {
         // Admin Only
         if (req.user.role !== 'admin') {
@@ -399,15 +408,15 @@ const getUserGrowth = async (req, res) => {
         }
 
         const [stats] = await db.execute(`
-            SELECT 
-                DATE_FORMAT(created_at, '%Y-%m') as key_month,
+            SELECT
+            DATE_FORMAT(created_at, '%Y-%m') as key_month,
                 DATE_FORMAT(created_at, '%b') as month,
                 COUNT(*) as count
             FROM users 
             WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
             GROUP BY key_month, month
             ORDER BY key_month ASC
-        `);
+                `);
 
         // Fill gaps
         const months = [];
@@ -428,8 +437,7 @@ const getUserGrowth = async (req, res) => {
         res.json({ labels, data });
 
     } catch (error) {
-        console.error("getUserGrowth error:", error);
-        res.status(500).json({ message: "Server error" });
+        next(error);
     }
 };
 

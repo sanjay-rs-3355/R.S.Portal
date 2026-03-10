@@ -8,6 +8,10 @@ const userController = require('../controllers/userController');
 // Get all users (Admin only)
 router.get('/', verifyToken, requireAdmin, userController.getAllUsers);
 
+// Profile Management (Current User)
+router.get('/profile', verifyToken, userController.getProfile);
+router.put('/profile', verifyToken, userController.updateProfile);
+
 router.put('/:id/suspend', verifyToken, requireAdmin, userController.suspendUser);
 router.put('/:id/activate', verifyToken, requireAdmin, userController.activateUser);
 router.put('/:id/promote', verifyToken, requireAdmin, userController.promoteUser);

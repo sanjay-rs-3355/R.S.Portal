@@ -3,7 +3,7 @@
 const db = require('../config/db');
 
 const requireProjectMember = async (req, res, next) => {
-    const projectId = req.params.id;
+    const projectId = req.params.id || req.params.projectId;
     const userId = req.user.id;
 
     try {

@@ -1,7 +1,7 @@
 const db = require('../config/db');
 const logActivity = require('../utils/activityLogger');
 
-const createProject = async (req, res) => {
+const createProject = async (req, res, next) => {
     const { title, description } = req.body;
     const userId = req.user.id;
 
@@ -28,43 +28,34 @@ const createProject = async (req, res) => {
         });
 
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        next(error);
     }
 };
 
-const getProjects = async (req, res) => {
+const getProjects = async (req, res, next) => {
     const userId = req.user.id;
     const role = req.user.role;
 
     try {
-        let query;
-        let values = [];
-
-        if (role === 'admin') {
-            // Admin sees ALL projects
-            query = `SELECT * FROM projects WHERE is_deleted = FALSE`;
-            values = [];
-        } else {
-            // Members see only their projects
-            query = `
-                SELECT p.* FROM projects p
-                JOIN project_members pm ON p.id = pm.project_id
-                WHERE pm.user_id = ? AND p.is_deleted = FALSE
-            `;
-            values = [userId];
-        }
-
-        const [rows] = await db.execute(query, values);
+        const progressQuery = `
+            SELECT p.*, 
+                   ROUND(COALESCE(SUM(CASE WHEN t.status = 'completed' THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(t.id), 0), 0)) as progress
+            FROM projects p
+            LEFT JOIN tasks t ON p.id = t.project_id
+            WHERE p.is_deleted = FALSE 
+            ${role === 'admin' ? '' : 'AND p.id IN (SELECT project_id FROM project_members WHERE user_id = ?)'}
+            GROUP BY p.id
+            ORDER BY p.last_activity_at DESC
+        `;
+        const [rows] = await db.execute(progressQuery, role === 'admin' ? [] : [userId]);
         res.json(rows);
 
     } catch (error) {
-        console.error("getProjects error:", error);
-        res.status(500).json({ message: 'Server error' });
+        next(error);
     }
 };
 
-const getProjectById = async (req, res) => {
+const getProjectById = async (req, res, next) => {
     const projectId = req.params.id;
 
     try {
@@ -80,11 +71,11 @@ const getProjectById = async (req, res) => {
         res.json(rows[0]);
 
     } catch (error) {
-        res.status(500).json({ message: 'Server error' });
+        next(error);
     }
 };
 
-const deleteProject = async (req, res) => {
+const deleteProject = async (req, res, next) => {
     const projectId = req.params.id;
 
     try {
@@ -100,19 +91,20 @@ const deleteProject = async (req, res) => {
         res.json({ message: 'Project deleted (soft delete)' });
 
     } catch (error) {
-        res.status(500).json({ message: 'Server error' });
+        next(error);
     }
 };
 
-const transferOwnership = async (req, res) => {
+const transferOwnership = async (req, res, next) => {
     const projectId = req.params.projectId;
     const newAdminId = req.params.newAdminId;
 
     try {
-        const [[newAdmin]] = await db.execute(
+        const [rows] = await db.execute(
             "SELECT id, role FROM users WHERE id = ?",
             [newAdminId]
         );
+        const newAdmin = rows[0];
 
         if (!newAdmin) {
             return res.status(404).json({ message: "New admin not found" });
@@ -130,8 +122,36 @@ const transferOwnership = async (req, res) => {
         res.json({ message: "Project ownership transferred successfully" });
 
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Server error" });
+        next(error);
+    }
+};
+
+const updateProject = async (req, res, next) => {
+    const projectId = req.params.id;
+    const { title, description } = req.body;
+    const userId = req.user.id;
+
+    try {
+        const [existing] = await db.execute(
+            'SELECT id FROM projects WHERE id = ? AND is_deleted = FALSE',
+            [projectId]
+        );
+
+        if (existing.length === 0) {
+            return res.status(404).json({ message: 'Project not found' });
+        }
+
+        await db.execute(
+            'UPDATE projects SET title = ?, description = ? WHERE id = ?',
+            [title, description || null, projectId]
+        );
+
+        await logActivity(userId, projectId, `Updated project details: "${title}"`, 'project');
+
+        res.json({ message: 'Project updated successfully' });
+
+    } catch (error) {
+        next(error);
     }
 };
 
@@ -140,5 +160,6 @@ module.exports = {
     getProjects,
     getProjectById,
     deleteProject,
+    updateProject,
     transferOwnership
 };

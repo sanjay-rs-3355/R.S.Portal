@@ -64,6 +64,21 @@
                             <option value="admin">Admin</option>
                         </select>
                     </div>
+
+                    <div class="input-group">
+                        <label class="glass-label">Designation</label>
+                        <select id="designation" class="glass-input"
+                            style="background: rgba(255, 255, 255, 0.9); color: #333;">
+                            <option value="Full-Stack Developer">Full-Stack Developer</option>
+                            <option value="Frontend Developer">Frontend Developer</option>
+                            <option value="Backend Developer">Backend Developer</option>
+                            <option value="UI-Designer">UI-Designer</option>
+                            <option value="Designer">Designer</option>
+                            <option value="Project Manager">Project Manager</option>
+                            <option value="Tester">Tester</option>
+                            <option value="Member">Member</option>
+                        </select>
+                    </div>
                 </form>
             </div>
 
@@ -98,25 +113,8 @@
         </div>
     </div>
 
+    <script src="app.js"></script>
     <script>
-        /* ================= TOAST LOGIC ================= */
-        function showToast(message, type = 'success') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            toast.innerHTML = `
-                <div class="toast-content">${message}</div>
-            `;
-            container.appendChild(toast);
-
-            // Auto remove
-            setTimeout(() => {
-                toast.style.animation = 'fadeOut 0.3s forwards';
-                toast.addEventListener('animationend', () => {
-                    toast.remove();
-                });
-            }, 3000);
-        }
 
         // Avatar Selection Logic
         function selectAvatar(imgElement) {
@@ -164,13 +162,14 @@
                 return;
             }
 
-            const designation = document.getElementById("designation").value;
+            const role = document.getElementById("role")?.value || 'member';
+            const designation = document.getElementById("designation")?.value || 'Member';
 
             try {
-                const res = await fetch('http://localhost:5000/api/auth/register', {
+                const res = await fetch('/api/auth/register', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name: fullname, email, password, designation })
+                    body: JSON.stringify({ name: fullname, email, password, role, designation })
                 });
 
                 const data = await res.json();

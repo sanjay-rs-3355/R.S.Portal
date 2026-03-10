@@ -3,7 +3,7 @@
 const db = require('../config/db');
 const logActivity = require('../utils/activityLogger');
 
-const addMember = async (req, res) => {
+const addMember = async (req, res, next) => {
     const projectId = req.params.id;
     const { email } = req.body; // Changed from userId to email
     const requesterId = req.user.id;
@@ -28,7 +28,7 @@ const addMember = async (req, res) => {
             [projectId, userId]
         );
 
-        await logActivity(requesterId, projectId, `Added member: ${userToAdd.name}`);
+        await logActivity(requesterId, projectId, `👤 ${userToAdd.name} added to project`, 'member');
 
         res.status(201).json({ message: 'Member added successfully' });
 
@@ -36,12 +36,11 @@ const addMember = async (req, res) => {
         if (error.code === 'ER_DUP_ENTRY') {
             return res.status(409).json({ message: 'User already a member of this project' });
         }
-        console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        next(error);
     }
 };
 
-const removeMember = async (req, res) => {
+const removeMember = async (req, res, next) => {
     const projectId = req.params.id;
     const userId = req.params.userId;
     const requesterId = req.user.id;
@@ -65,18 +64,17 @@ const removeMember = async (req, res) => {
         );
 
         if (userToRemove) {
-            await logActivity(requesterId, projectId, `Removed member: ${userToRemove.name}`);
+            await logActivity(requesterId, projectId, `👤 ${userToRemove.name} removed from project`, 'member');
         }
 
         res.json({ message: 'Member removed and tasks unassigned' });
 
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        next(error);
     }
 };
 
-const getProjectMembers = async (req, res) => {
+const getProjectMembers = async (req, res, next) => {
     const projectId = req.params.id;
 
     try {
@@ -93,7 +91,7 @@ const getProjectMembers = async (req, res) => {
         res.json(rows);
 
     } catch (error) {
-        res.status(500).json({ message: 'Server error' });
+        next(error);
     }
 };
 

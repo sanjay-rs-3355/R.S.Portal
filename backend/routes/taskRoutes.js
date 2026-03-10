@@ -15,6 +15,13 @@ router.post('/projects/:id/tasks',
     taskController.createTask
 );
 
+// Get all system tasks (Admin)
+router.get('/tasks',
+    verifyToken,
+    requireAdmin,
+    taskController.getAllTasks
+);
+
 // Get tasks
 router.get('/projects/:id/tasks',
     verifyToken,

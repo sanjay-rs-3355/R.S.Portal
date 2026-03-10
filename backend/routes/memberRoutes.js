@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const verifyToken = require('../middleware/authMiddleware');
-const { requireAdmin } = require('../middleware/roleMiddleware');
+const { requireAdmin, requireManager } = require('../middleware/roleMiddleware');
 const requireProjectMember = require('../middleware/projectMiddleware');
 
 const memberController = require('../controllers/memberController');
@@ -10,14 +10,14 @@ const memberController = require('../controllers/memberController');
 // Add member
 router.post('/projects/:id/members',
     verifyToken,
-    requireAdmin,
+    requireManager,
     memberController.addMember
 );
 
 // Remove member
 router.delete('/projects/:id/members/:userId',
     verifyToken,
-    requireAdmin,
+    requireManager,
     memberController.removeMember
 );
 

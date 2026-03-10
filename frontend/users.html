@@ -13,6 +13,72 @@
     <link rel="stylesheet" href="users.css">
     <link rel="stylesheet" href="chat.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <style>
+        .users-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 24px;
+        }
+
+        .user-card {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(16px);
+            border-radius: 20px;
+            padding: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .user-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 20px 40px -15px rgba(99, 102, 241, 0.2);
+            border-color: rgba(99, 102, 241, 0.4);
+        }
+
+        .user-card-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+        }
+
+        .user-card-body {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            background: rgba(248, 250, 252, 0.5);
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(226, 232, 240, 0.5);
+        }
+
+        .user-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 16px;
+            border-top: 1px dashed rgba(203, 213, 225, 0.6);
+            margin-top: auto;
+        }
+
+        @keyframes slideUpFade {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -26,26 +92,24 @@
                 <span>R.S.Portal</span>
             </div>
             <ul class="nav">
-                <li id="navDashboard">
+                <li id="navDashboard" onclick="window.location.href='dashboard.html'">
                     <i class="fa-solid fa-border-all"></i> &nbsp; Dashboard
                 </li>
 
-                <li id="navProjects">
+                <li id="navProjects" onclick="window.location.href='projects.html'">
                     <i class="fa-regular fa-folder"></i> &nbsp; Projects
                 </li>
 
-                <li id="navTasks">
+                <li id="navTasks" style="display:none;">
                     <i class="fa-regular fa-circle-check"></i> &nbsp; Tasks
                 </li>
-
-                <li class="active" id="navUsers" style="display:none;">
+                <li id="navUsers" onclick="window.location.href='users.html'" class="active">
                     <i class="fa-solid fa-users"></i> &nbsp; Users
                 </li>
+                <li id="navDbManager" onclick="window.location.href='db-manager.html'">
+                    <i class="fa-solid fa-database"></i> &nbsp; DB Manager
+                </li>
             </ul>
-            <div class="bottom-menu">
-                <div id="navLogout" style="cursor: pointer;"><i class="fa-solid fa-arrow-right-from-bracket"></i>
-                    &nbsp; Log Out</div>
-            </div>
         </div>
 
         <!-- Main Content -->
@@ -54,339 +118,171 @@
             <div class="topbar">
                 <div class="top-left">
                     <div class="breadcrumb">Pages / <span class="crumb-active">Users</span></div>
-                    <div class="page-subtitle">User Management</div>
+                    <div class="page-subtitle">Platform Directory</div>
                 </div>
                 <div class="top-right">
                     <div class="search-wrapper">
                         <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                        <input type="text" class="search" placeholder="Search users...">
+                        <input type="text" class="search" placeholder="Search members...">
                     </div>
-                    <div class="notification">
+                    <div class="notification" id="notifBtn" style="cursor: pointer; position: relative;">
                         <i class="fa-regular fa-bell"></i>
-                        <span class="notif-dot"></span>
+                        <span class="notif-dot" id="notifDot" style="display: none;"></span>
+                        <!-- Notification Dropdown -->
+                        <div class="notif-dropdown" id="notifDropdown">
+                            <div class="notif-header">
+                                <span>Notifications</span>
+                                <button id="markAllRead" class="btn-text-sm">Clear All</button>
+                            </div>
+                            <div class="notif-list" id="notifList">
+                                <p class="notif-empty">No new notifications</p>
+                            </div>
+                        </div>
                     </div>
-                    <div class="user">
-                        <div class="user-avatar" id="user-avatar">U</div>
+                    <div class="topbar-divider"></div>
+                    <div class="user" id="userMenuBtn" style="cursor: pointer; position: relative;">
+                        <div class="user-avatar" id="user-avatar"></div>
+                        <span id="usernameDisplay"
+                            style="font-weight: 600; color: var(--text-color); margin-right: 4px;">User</span>
                         <span class="arrow"><i class="fa-solid fa-chevron-down"></i></span>
+                        <!-- User Dropdown -->
+                        <div class="user-dropdown" id="userDropdown">
+                            <div class="dropdown-item" onclick="window.location.href='profile.html'">
+                                <i class="fa-regular fa-user"></i> My Profile
+                            </div>
+                            <div class="dropdown-item" onclick="logout()">
+                                <i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Header Actions -->
-            <div class="page-header-actions"
-                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <div>
-                    <h2 class="page-title" style="margin: 0;">User Management</h2>
-                    <p style="color: #64748b; font-size: 14px; margin-top: 5px;" id="user-count-subtitle">Loading
-                        users...</p>
-                </div>
-                <button class="btn-primary" onclick="openModal('addUserModal')"><i class="fa-solid fa-plus"></i> &nbsp;
-                    Add New User</button>
-            </div>
-
-            <!-- Filters & Search -->
-            <div class="card-box" style="padding: 15px; margin-bottom: 20px;">
-                <div class="user-controls"
-                    style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
-                    <div class="role-filters" style="display: flex; gap: 10px;">
-                        <button class="filter-tab active" onclick="filterUsers('All')">All</button>
-                        <button class="filter-tab" onclick="filterUsers('admin')">Admins</button>
-                        <button class="filter-tab" onclick="filterUsers('member')">Members</button>
+            <div class="dashboard-area">
+                <!-- WELCOME BANNER -->
+                <div class="dash-welcome-banner" style="margin-bottom: 35px;">
+                    <div>
+                        <h2 class="dash-welcome-title">User Management</h2>
+                        <p class="dash-welcome-sub">Manage platform members, roles, and access controls.</p>
                     </div>
-                    <div class="search-wrapper-sm"
-                        style="background: #f1f5f9; padding: 8px 15px; border-radius: 8px; display: flex; align-items: center; gap: 10px; width: 300px;">
-                        <i class="fa-solid fa-magnifying-glass" style="color: #94a3b8;"></i>
-                        <input type="text" id="userListSearch" placeholder="Search by name or email..."
-                            onkeyup="searchUsersTable()"
-                            style="border: none; background: transparent; outline: none; width: 100%; color: #334155;">
+                    <div class="dash-welcome-date" id="dash-date"></div>
+                </div>
+
+                <!-- Header Actions -->
+                <div class="page-header-actions"
+                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <div>
+                        <h3 style="font-size: 20px; font-weight: 800; color: #1e293b; letter-spacing: -0.5px;">User
+                            Directory <span id="userCount"
+                                style="color: #64748b; font-weight: 500; font-size: 16px;"></span></h3>
+                        <p style="color: #64748b; font-size: 14px; margin-top: 5px;" id="user-count-subtitle">Directory
+                            of all registered portal accounts.</p>
+                    </div>
+                    <button class="btn-primary" onclick="openModal('addUserModal')"
+                        style="padding: 10px 24px; text-transform: none; font-size: 13px; border-radius: 12px;">
+                        <i class="fa-solid fa-user-plus"></i> &nbsp; Add New User
+                    </button>
+                </div>
+
+                <!-- Filters & Search -->
+                <div class="card-box" style="padding: 15px; margin-bottom: 20px;">
+                    <div class="user-controls"
+                        style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                        <div class="role-filters" style="display: flex; gap: 10px;">
+                            <button class="filter-tab active" onclick="filterUsers('All')">All</button>
+                            <button class="filter-tab" onclick="filterUsers('admin')">Admins</button>
+                            <button class="filter-tab" onclick="filterUsers('member')">Members</button>
+                        </div>
+                        <div style="display: flex; gap: 15px; align-items: center;">
+                            <div class="search-wrapper-sm"
+                                style="background: #f1f5f9; padding: 8px 15px; border-radius: 8px; display: flex; align-items: center; gap: 10px; width: 260px;">
+                                <i class="fa-solid fa-magnifying-glass" style="color: #94a3b8;"></i>
+                                <input type="text" id="userListSearch" placeholder="Search by name or email..."
+                                    onkeyup="searchUsersTable()"
+                                    style="border: none; background: transparent; outline: none; width: 100%; color: #334155;">
+                            </div>
+                            <div
+                                style="display: flex; align-items: center; gap: 10px; background: #f1f5f9; padding: 8px 15px; border-radius: 8px;">
+                                <i class="fa-solid fa-arrow-down-a-z" style="color: #94a3b8;"></i>
+                                <select id="userSortBy" onchange="applyFilters()"
+                                    style="border: none; background: transparent; outline: none; color: #334155; font-size: 13px; font-weight: 600; cursor: pointer;">
+                                    <option value="name-asc">Name (A-Z)</option>
+                                    <option value="name-desc">Name (Z-A)</option>
+                                    <option value="id-asc">ID (Oldest)</option>
+                                    <option value="id-desc">ID (Newest)</option>
+                                    <option value="email-asc">Email (A-Z)</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Users Table -->
-            <div class="card-box" style="padding: 0; overflow: hidden;">
-                <table class="modern-table" id="users-table">
-                    <thead>
-                        <tr>
-                            <th>User</th>
-                            <th>Role</th>
-                            <th>Status</th>
-                            <th>Joined</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Populated by JS -->
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- MODALS -->
-            <div id="addUserModal" class="modal">
-                <div class="modal-content" style="width: 400px;">
-                    <span class="close" onclick="closeModal('addUserModal')">&times;</span>
-                    <h2>Add New User</h2>
-                    <form id="addUserForm" onsubmit="handleAddUser(event)">
-                        <input type="text" id="newUserName" placeholder="Full Name" required>
-                        <input type="email" id="newUserEmail" placeholder="Email Address" required>
-                        <input type="password" id="newUserPassword" placeholder="Password" required>
-                        <select id="newUserRole">
-                            <option value="member">Member</option>
-                            <option value="admin">Admin</option>
-                            <option value="manager">Manager</option>
-                            <option value="tester">Tester</option>
-                        </select>
-                        <button type="submit">Create User</button>
-                    </form>
+                <!-- Users Grid -->
+                <div class="users-container" id="users-grid">
+                    <!-- Populated by JS -->
                 </div>
-            </div>
 
+                <!-- Pagination footer -->
+                <div class="pagination-footer"
+                    style="margin-top: 30px; display: flex; flex-direction: column; align-items: center; gap: 15px;">
+                    <div class="pagination-wrapper"
+                        style="display: flex; justify-content: center; align-items: center; background: rgba(255,255,255,0.7); backdrop-filter: blur(10px); padding: 10px 15px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.5); box-shadow: 0 4px 15px rgba(0,0,0,0.03); gap: 10px;">
+                        <button id="userPrevPage" onclick="changePage(-1)" class="btn-icon-premium"
+                            style="width: 36px; height: 36px; border-radius: 10px; border: 1px solid #e2e8f0; background: white; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center;">
+                            <i class="fa-solid fa-chevron-left" style="font-size: 11px; color: #64748b;"></i>
+                        </button>
+
+                        <!-- Page Numbers Container -->
+                        <div id="page-numbers-container" style="display: flex; gap: 6px; align-items: center;">
+                            <!-- Numbers injected by JS -->
+                        </div>
+
+                        <button id="userNextPage" onclick="changePage(1)" class="btn-icon-premium"
+                            style="width: 36px; height: 36px; border-radius: 10px; border: 1px solid #e2e8f0; background: white; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center;">
+                            <i class="fa-solid fa-chevron-right" style="font-size: 11px; color: #64748b;"></i>
+                        </button>
+                    </div>
+                    <div id="user-pagination-info"
+                        style="font-size: 12px; color: #64748b; font-weight: 600; opacity: 0.7;">
+                        Showing 0-0 of 0 users
+                    </div>
+                </div>
+
+                <!-- MODALS -->
+                <div id="addUserModal" class="modal">
+                    <div class="modal-content" style="width: 400px;">
+                        <span class="close" onclick="closeModal('addUserModal')">&times;</span>
+                        <h2>Add New User</h2>
+                        <form id="addUserForm" onsubmit="handleAddUser(event)">
+                            <input type="text" id="newUserName" placeholder="Full Name" required>
+                            <input type="email" id="newUserEmail" placeholder="Email Address" required>
+                            <input type="password" id="newUserPassword" placeholder="Password" required>
+                            <select id="newUserRole">
+                                <option value="member">Member</option>
+                                <option value="admin">Admin</option>
+                                <option value="manager">Manager</option>
+                                <option value="tester">Tester</option>
+                            </select>
+                            <select id="newUserDesignation">
+                                <option value="Designer">Designer</option>
+                                <option value="UI-Designer">UI-Designer</option>
+                                <option value="Project Manager">Project Manager</option>
+                                <option value="Tester">Tester</option>
+                                <option value="Full-Stack Developer">Full-Stack Developer</option>
+                                <option value="Frontend Developer">Frontend Developer</option>
+                                <option value="Backend Developer">Backend Developer</option>
+                                <option value="Member">Member</option>
+                            </select>
+                            <button type="submit" class="btn-primary">Create User</button>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
         </div>
-    </div>
 
-    <script src="app.js"></script>
-    <script>
-        const token = localStorage.getItem("token");
-        if (!token) window.location.href = "index.html";
-
-        // Handle Back Button (bfcache)
-        window.addEventListener('pageshow', function (event) {
-            if (!localStorage.getItem("token")) {
-                window.location.href = "index.html";
-            }
-        });
-
-        let allUsers = [];
-        let currentRoleFilter = 'All';
-
-        document.addEventListener('DOMContentLoaded', () => {
-            setupNavigation();
-            initPage();
-        });
-
-        function setupNavigation() {
-            document.getElementById('navDashboard')?.addEventListener('click', () => window.location.href = 'admin-dashboard.html');
-            document.getElementById('navProjects')?.addEventListener('click', () => window.location.href = 'project.html');
-            document.getElementById('navTasks')?.addEventListener('click', () => window.location.href = 'tasks.html');
-            document.getElementById('navUsers')?.addEventListener('click', () => window.location.href = 'users.html');
-            document.getElementById('navLogout')?.addEventListener('click', logout);
-            document.querySelector('.logo')?.addEventListener('click', () => window.location.href = 'index.html');
-        }
-        async function initPage() {
-            try {
-                // Determine role
-                const user = parseJwt(token);
-                if (!user || user.role !== 'admin') {
-                    alert("Unauthorized access");
-                    window.location.href = "dashboard.html";
-                    return;
-                }
-
-                if (user.name) {
-                    document.getElementById("user-avatar").innerText = user.name.charAt(0).toUpperCase();
-                }
-
-                document.getElementById('admin-users-link').style.display = 'block';
-
-                loadAllUsers();
-
-            } catch (error) {
-                console.error(error);
-                logout();
-            }
-        }
-
-        async function loadAllUsers() {
-            try {
-                const res = await fetch("http://localhost:5000/api/users", {
-                    headers: { "Authorization": "Bearer " + token }
-                });
-                const users = await res.json();
-                allUsers = users; // Store for filtering
-
-                document.getElementById('user-count-subtitle').innerText = `${users.length} users found`;
-                renderUsersTable(users);
-
-            } catch (e) { console.error(e); }
-        }
-
-        function renderUsersTable(users) {
-            const tbody = document.querySelector("#users-table tbody");
-            tbody.innerHTML = "";
-
-            if (users.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 20px; color: #64748b;">No users found matching criteria.</td></tr>`;
-                return;
-            }
-
-            const colors = ['#f87171', '#fbbf24', '#34d399', '#60a5fa', '#818cf8', '#a78bfa', '#f472b6'];
-
-            users.forEach((u, index) => {
-                const color = colors[index % colors.length];
-                const joinedDate = u.created_at ? new Date(u.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'N/A';
-
-                // Status Logic (Mock if not in DB)
-                const status = u.status || 'active';
-                const statusClass = status === 'active' ? 'status-active' : 'status-inactive';
-                const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
-
-                tbody.innerHTML += `
-                    <tr>
-                        <td>
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <div class="user-avatar-sm" style="background: ${color};">${u.name.charAt(0).toUpperCase()}</div>
-                                <div class="user-info">
-                                    <div class="user-name">${u.name}</div>
-                                    <div class="user-email">${u.email}</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td><span class="role-badge ${u.role}">${u.role}</span></td>
-                        <td><div class="status-indicator ${statusClass}"><span class="dot"></span> ${statusLabel}</div></td>
-                        <td style="color: #64748b; font-size: 14px;">${joinedDate}</td>
-                        <td>
-                            <div class="action-buttons">
-                                <button class="btn-icon-sm" onclick="alert('Email ${u.email}')"><i class="fa-regular fa-envelope"></i></button>
-                                <button class="btn-icon-sm" onclick="deleteUser(${u.id})"><i class="fa-regular fa-trash-can"></i></button>
-                                <button class="btn-icon-sm"><i class="fa-solid fa-ellipsis-vertical"></i></button>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            });
-        }
-
-        function filterUsers(role) {
-            currentRoleFilter = role;
-
-            // Update UI Tabs
-            document.querySelectorAll('.filter-tab').forEach(btn => {
-                if (btn.innerText.toLowerCase() === role.toLowerCase() || (role === 'All' && btn.innerText === 'All')) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
-            });
-
-            applyFilters();
-        }
-
-        function searchUsersTable() {
-            applyFilters();
-        }
-
-        function applyFilters() {
-            const term = document.getElementById('userListSearch').value.toLowerCase();
-
-            const filtered = allUsers.filter(u => {
-                const matchesRole = currentRoleFilter === 'All' || u.role === currentRoleFilter;
-                const matchesSearch = u.name.toLowerCase().includes(term) || u.email.toLowerCase().includes(term);
-                return matchesRole && matchesSearch;
-            });
-
-            renderUsersTable(filtered);
-        }
-
-        async function deleteUser(id) {
-            if (!confirm("Are you sure you want to delete this user? This action cannot be undone.")) return;
-
-            try {
-                const res = await fetch(`http://localhost:5000/api/users/${id}`, {
-                    method: "DELETE",
-                    headers: { "Authorization": "Bearer " + token }
-                });
-
-                const data = await res.json();
-
-                if (res.ok) {
-                    showToast(data.message || "User deleted successfully", "success");
-                    loadAllUsers();
-                } else {
-                    showToast(data.message || "Failed to delete user", "error");
-                }
-            } catch (error) {
-                console.error(error);
-                showToast("Server error", "error");
-            }
-        }
-
-        async function handleAddUser(e) {
-            e.preventDefault();
-            const name = document.getElementById("newUserName").value;
-            const email = document.getElementById("newUserEmail").value;
-            const password = document.getElementById("newUserPassword").value;
-            const role = document.getElementById("newUserRole").value;
-
-            try {
-                const res = await fetch("http://localhost:5000/api/auth/register", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": "Bearer " + token
-                    },
-                    body: JSON.stringify({ name, email, password, role })
-                });
-
-                const data = await res.json();
-
-                if (res.ok) {
-                    showToast("User created successfully", "success");
-                    closeModal('addUserModal');
-                    document.getElementById("addUserForm").reset();
-                    loadAllUsers();
-                } else {
-                    showToast(data.message || "Failed to create user", "error");
-                }
-            } catch (error) {
-                console.error(error);
-                showToast("Server error", "error");
-            }
-        }
-
-        // Modal Functions
-        function openModal(modalId) {
-            document.getElementById(modalId).style.display = "flex";
-        }
-
-        function closeModal(modalId) {
-            document.getElementById(modalId).style.display = "none";
-        }
-
-        // Toast Notification
-        function showToast(message, type = 'success') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            toast.innerHTML = `
-                <div class="toast-content">
-                    ${message}
-                </div>
-            `;
-
-            container.appendChild(toast);
-
-            setTimeout(() => {
-                toast.style.animation = 'fadeOut 0.3s forwards';
-                setTimeout(() => {
-                    toast.remove();
-                }, 300);
-            }, 3000);
-        }
-
-        // Close Modal on Outside Click
-        window.onclick = function (event) {
-            if (event.target.classList.contains('modal')) {
-                event.target.style.display = "none";
-            }
-        }
-
-        function logout() {
-            localStorage.clear();
-            window.location.href = "index.html";
-        }
-
-        // initPage called via DOMContentLoaded
-    </script>
+        <script src="app.js"></script>
+        <script src="users.js"></script>
 </body>
 
 </html>

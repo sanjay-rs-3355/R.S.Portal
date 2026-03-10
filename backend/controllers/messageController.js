@@ -1,6 +1,6 @@
 const db = require('../config/db');
 
-const getMessages = async (req, res) => {
+const getMessages = async (req, res, next) => {
     const projectId = req.params.id;
 
     try {
@@ -23,8 +23,7 @@ const getMessages = async (req, res) => {
         res.json(rows);
 
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Server error" });
+        next(error);
     }
 };
 

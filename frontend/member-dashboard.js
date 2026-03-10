@@ -2,16 +2,21 @@
 
 document.addEventListener('DOMContentLoaded', initMemberDashboard);
 
+let allActivities = [];
+let allDeadlines = [];
+let isActivityExpanded = false;
+let isDeadlinesExpanded = false;
+
+
 async function initMemberDashboard() {
     // 1. Role Check (Allow Admin to view)
     const user = handleDashboardAccess('member', true);
     if (!user) return;
 
-    // 2. Setup UI
-    document.getElementById("username-display").innerText = user.name;
-    document.getElementById("user-avatar").innerText = user.name.charAt(0).toUpperCase();
+    // 2. UI Setup (Common elements handled by app.js)
+    const welcomeName = document.getElementById("welcome-name");
+    if (welcomeName) welcomeName.innerText = user.name;
 
-    // Show Admin View button if Admin
     if (user.role === 'admin') {
         const adminBtnContainer = document.getElementById('admin-view-btn-container');
         if (adminBtnContainer) adminBtnContainer.style.display = 'block';
@@ -19,6 +24,15 @@ async function initMemberDashboard() {
 
     // 3. Navigation Bindings
     setupNavigation();
+    setupInteractions();
+
+    // Admin View Toggle (Member dashboard specific)
+    const btnAdminView = document.getElementById('btnAdminView');
+    if (btnAdminView) {
+        btnAdminView.addEventListener('click', () => {
+            window.location.href = 'admin-dashboard.html';
+        });
+    }
 
     // 4. Load Data
     loadMemberStats();
@@ -27,132 +41,274 @@ async function initMemberDashboard() {
     loadMemberActivity();
 }
 
-function setupNavigation() {
-    // Navigation
-    const navDashboard = document.getElementById('navDashboard');
-    const navProjects = document.getElementById('navProjects');
-    const navTasks = document.getElementById('navTasks');
-    const navLogout = document.getElementById('navLogout');
-    const btnAdminView = document.getElementById('btnAdminView');
-
-    if (navDashboard) navDashboard.addEventListener('click', () => {
-        window.location.href = 'member-dashboard.html';
+function setupInteractions() {
+    // 2. Chart Filters
+    document.getElementById('projectStatsFilter')?.addEventListener('change', async (e) => {
+        const data = await apiGet('/api/dashboard');
+        if (data) renderProjectStatsChart(data);
     });
 
-    if (navProjects) navProjects.addEventListener('click', () => {
-        window.location.href = 'project.html';
+    document.getElementById('performanceFilter')?.addEventListener('change', async (e) => {
+        await loadPerformance();
     });
 
-    if (navTasks) navTasks.addEventListener('click', () => {
-        window.location.href = 'tasks.html';
-    });
+    // 3. Search
+    const searchInput = document.querySelector('.search');
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+            renderActivityLog();
+            renderDeadlines();
+        });
+    }
 
-    if (navLogout) navLogout.addEventListener('click', logout);
-
-    // Admin View Toggle
-    if (btnAdminView) btnAdminView.addEventListener('click', () => {
-        window.location.href = 'admin-dashboard.html';
-    });
-
-    // Logo
-    document.querySelector('.logo')?.addEventListener('click', () => window.location.href = 'index.html');
+    // 4. View More Buttons
+    document.getElementById('viewMoreActivityBtn')?.addEventListener('click', toggleActivityView);
+    document.getElementById('viewMoreDeadlinesBtn')?.addEventListener('click', toggleDeadlinesView);
 }
+
+
+
 
 async function loadMemberStats() {
     const data = await apiGet('/api/dashboard');
     if (!data) return;
 
     // Populate Stats
-    setText("myProjects", data.joinedProjects || data.totalProjects || 0);
-    setText("myTasks", data.assignedTasks || data.totalTasks || 0);
-    setText("myCompleted", data.completedTasks || 0);
-    setText("teamSize", data.totalUsers || 12);
+    animateValue("myProjects", data.joinedProjects || data.totalProjects || 0);
+    animateValue("myTasks", data.assignedTasks || data.totalTasks || 0);
+    animateValue("myCompleted", data.completedTasks || 0);
+    animateValue("teamSize", data.totalUsers || 0);
 
     // Render Project Stats Chart (Shared)
     renderProjectStatsChart(data);
 }
 
-function setText(id, value) {
-    const el = document.getElementById(id);
-    if (el) el.innerText = value;
-}
+
 
 // 3. Upcoming Deadlines
 async function fetchUpcomingDeadlines() {
-    const tasks = await apiGet('/api/dashboard/deadlines');
+    allDeadlines = await apiGet('/api/dashboard/deadlines') || [];
+    renderDeadlines();
+}
+
+function renderDeadlines() {
     const container = document.getElementById('deadline-list');
     if (!container) return;
 
+    const searchInput = document.querySelector('.search');
+    const q = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+    let data = allDeadlines || [];
+
+    if (q !== '') {
+        data = data.filter(t =>
+            (t.title && t.title.toLowerCase().includes(q)) ||
+            (t.projectTitle && t.projectTitle.toLowerCase().includes(q))
+        );
+        data = sortSearchResults(data, q, ['title', 'projectTitle']);
+    }
+
     container.innerHTML = "";
 
-    if (!tasks || tasks.length === 0) {
-        container.innerHTML = '<p style="text-align:center; color:#94a3b8;">No upcoming deadlines.</p>';
+    if (!data || data.length === 0) {
+        container.innerHTML = `
+            <div style="text-align:center; padding:30px 10px; color:#94a3b8;">
+                <i class="fa-solid fa-calendar-check" style="font-size:30px; margin-bottom:10px; display:block; opacity:0.3;"></i>
+                <p style="margin:0; font-size:13px;">${q !== '' ? 'No matches' : 'No upcoming deadlines'}</p>
+            </div>`;
         return;
     }
 
-    tasks.forEach(t => {
-        let iconClass = 'fa-calendar'; // Default
-        let colorClass = 'bg-blue';
+    const limit = isDeadlinesExpanded ? data.length : 5;
+    const displayDeadlines = data.slice(0, limit);
+
+    displayDeadlines.forEach((t, index) => {
+        let dotColor = '#10b981';
+        let badgeBg = '#dcfce7';
+        let badgeColor = '#15803d';
         let remaining = t.remaining;
 
-        if (remaining === 'Today') { iconClass = 'fa-circle-exclamation'; colorClass = 'bg-orange'; }
+        if (remaining.toLowerCase().includes('today') || remaining.toLowerCase().includes('overdue')) {
+            dotColor = '#ef4444';
+            badgeBg = '#fee2e2';
+            badgeColor = '#ef4444';
+        } else if (remaining.toLowerCase().includes('tomorrow') || remaining.includes('1 Day')) {
+            dotColor = '#f97316';
+            badgeBg = '#fff7ed';
+            badgeColor = '#f97316';
+        }
 
         container.innerHTML += `
-            <div class="timeline-item">
-                    <div class="timeline-icon ${colorClass}">
-                    <i class="fa-regular ${iconClass}"></i>
-                </div>
-                <div class="timeline-content">
-                    <div class="timeline-text">
-                        <strong>${t.title}</strong>
-                        <span style="display:block; font-size:12px; color:#64748b;">${t.projectTitle}</span>
+            <div class="deadline-item-modern reveal" style="animation-delay: ${index * 60}ms;">
+                <div class="deadline-dot-glow" style="background:${dotColor};"></div>
+                <div class="timeline-content" style="padding:0; flex:1;">
+                    <div style="display:flex; justify-content:space-between; align-items:start; gap:10px;">
+                        <div style="flex:1;">
+                            <div style="font-weight:700; font-size:14px; color:#1e293b; margin-bottom:2px;">${t.title}</div>
+                            <div style="font-size:11px; color:#64748b; display:flex; align-items:center; gap:5px; opacity:0.75;">
+                                <i class="fa-regular fa-folder" style="font-size:10px;"></i> ${t.projectTitle}
+                            </div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div class="deadline-badge-modern" style="background:${badgeBg}; color:${badgeColor}; border: 1px solid ${badgeColor}15; min-width: 75px; text-align: center;">
+                                ${remaining}
+                            </div>
+                        </div>
                     </div>
-                    <div class="timeline-time">${remaining}</div>
                 </div>
             </div>
         `;
     });
+
+    const btn = document.getElementById('viewMoreDeadlinesBtn');
+    if (btn) {
+        btn.style.display = allDeadlines.length <= 5 ? 'none' : 'inline-block';
+        btn.innerHTML = isDeadlinesExpanded
+            ? 'Show Less <i class="fa-solid fa-chevron-up"></i>'
+            : `View All ${allDeadlines.length} Deadlines <i class="fa-solid fa-chevron-down"></i>`;
+    }
 }
 
-// 4. Activity Log (Member specific)
 async function loadMemberActivity() {
-    const activities = await apiGet('/api/dashboard/activity');
+    allActivities = await apiGet('/api/dashboard/activity') || [];
+    renderActivityLog();
+}
+
+function getActivityMeta(actionText) {
+    const act = (actionText || '').toLowerCase();
+
+    if (act.includes('created task') || act.includes('added task')) {
+        return { icon: 'fa-tasks', bg: '#10b981', badge: 'Task Created', badgeColor: '#10b981' };
+    }
+    if (act.includes('completed task') || act.includes('finished task')) {
+        return { icon: 'fa-check-circle', bg: '#10b981', badge: 'Completed', badgeColor: '#10b981' };
+    }
+    if (act.includes('updated task status')) {
+        return { icon: 'fa-arrows-rotate', bg: '#3b82f6', badge: 'Status Update', badgeColor: '#3b82f6' };
+    }
+    if (act.includes('updated task priority')) {
+        return { icon: 'fa-flag', bg: '#f59e0b', badge: 'Priority Set', badgeColor: '#f59e0b' };
+    }
+    if (act.includes('assigned task')) {
+        return { icon: 'fa-user-check', bg: '#06b6d4', badge: 'Assigned', badgeColor: '#06b6d4' };
+    }
+    if (act.includes('created project')) {
+        return { icon: 'fa-folder-plus', bg: '#f97316', badge: 'New Project', badgeColor: '#f97316' };
+    }
+    if (act.includes('added member')) {
+        return { icon: 'fa-user-plus', bg: '#6366f1', badge: 'Member Added', badgeColor: '#6366f1' };
+    }
+    if (act.includes('uploaded file') || act.includes('added attachment')) {
+        return { icon: 'fa-file-arrow-up', bg: '#6366f1', badge: 'File Upload', badgeColor: '#6366f1' };
+    }
+    if (act.includes('commented on file') || act.includes('added comment')) {
+        return { icon: 'fa-comment-dots', bg: '#8b5cf6', badge: 'File Comment', badgeColor: '#8b5cf6' };
+    }
+    if (act.includes('scheduled meeting') || act.includes('scheduled a meeting')) {
+        return { icon: 'fa-calendar-plus', bg: '#f59e0b', badge: 'Meeting Set', badgeColor: '#f59e0b' };
+    }
+    // Default
+    return { icon: 'fa-circle-dot', bg: '#64748b', badge: 'Activity', badgeColor: '#64748b' };
+}
+
+function renderActivityLog() {
     const container = document.getElementById('activity-list');
     if (!container) return;
 
-    container.innerHTML = "";
+    const searchInput = document.querySelector('.search');
+    const q = searchInput ? searchInput.value.toLowerCase().trim() : '';
 
-    if (!activities || activities.length === 0) {
-        container.innerHTML = '<p style="text-align:center; color:#94a3b8;">No recent activity.</p>';
+    let data = allActivities || [];
+
+    if (q !== '') {
+        data = data.filter(a =>
+            (a.action && a.action.toLowerCase().includes(q)) ||
+            (a.userName && a.userName.toLowerCase().includes(q)) ||
+            (a.projectTitle && a.projectTitle.toLowerCase().includes(q))
+        );
+        data = sortSearchResults(data, q, ['userName', 'action', 'projectTitle']);
+    }
+
+    container.innerHTML = "";
+    if (data.length === 0) {
+        container.innerHTML = `<p style="text-align:center; padding: 40px 20px; color:#94a3b8;">${q !== '' ? 'No matches' : 'No recent activity.'}</p>`;
         return;
     }
 
-    activities.forEach(a => {
+    const limit = isActivityExpanded ? data.length : 5;
+    const displayActivities = data.slice(0, limit);
+
+    let html = "";
+    displayActivities.forEach((a, index) => {
         const timeAgo = getTimeAgo(new Date(a.created_at));
+        const absDate = new Date(a.created_at).toLocaleString('en-US', {
+            month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+        });
+        const { icon, bg, badge, badgeColor } = getActivityMeta(a.action);
+        const initial = a.userName ? a.userName.charAt(0).toUpperCase() : 'S';
 
-        let icon = 'fa-user';
-        let colorClass = 'bg-blue';
-        const act = a.action.toLowerCase();
-
-        if (act.includes('created') || act.includes('added')) { icon = 'fa-plus'; colorClass = 'bg-green'; }
-        if (act.includes('login')) { icon = 'fa-arrow-right-to-bracket'; colorClass = 'bg-purple'; }
-        if (act.includes('status')) { icon = 'fa-arrow-rotate-right'; colorClass = 'bg-yellow'; }
-        if (act.includes('assigned')) { icon = 'fa-user-pen'; colorClass = 'bg-blue'; }
-        if (act.includes('deleted') || act.includes('removed')) { icon = 'fa-trash'; colorClass = 'bg-red'; }
-
-        container.innerHTML += `
-            <div class="timeline-item">
-                <div class="timeline-icon ${colorClass}">
+        html += `
+            <div class="activity-item reveal" style="animation-delay: ${index * 60}ms; display: flex; gap: 16px; margin-bottom: 12px; padding: 16px; background: white; border-radius: 12px; border: 1px solid #f1f5f9; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02); transition: all 0.2s ease;">
+                <!-- Left: Colored Icon -->
+                <div style="
+                    width: 40px; height: 40px; min-width: 40px;
+                    border-radius: 12px;
+                    background: ${bg}18;
+                    border: 1.5px solid ${bg}40;
+                    display: flex; align-items: center; justify-content: center;
+                    color: ${bg}; font-size: 15px;
+                ">
                     <i class="fa-solid ${icon}"></i>
                 </div>
-                <div class="timeline-content">
-                    <div class="timeline-text">
-                        <strong>${a.userName}</strong> • ${a.action}
-                        ${a.projectTitle ? `<span>${a.projectTitle}</span>` : ''}
+
+                <!-- Middle: Content -->
+                <div style="flex: 1; min-width: 0;">
+                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px;">
+                        <div style="
+                            width: 22px; height: 22px; border-radius: 6px;
+                            background: ${bg}; color: white;
+                            font-size: 11px; font-weight: 700;
+                            display: inline-flex; align-items: center; justify-content: center;
+                            flex-shrink: 0;
+                        ">${initial}</div>
+                        <span style="font-weight: 600; font-size: 13px; color: #1e293b;">${a.userName || 'System'}</span>
+                        <span style="
+                            font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+                            padding: 2px 8px; border-radius: 20px;
+                            background: ${badgeColor}15; color: ${badgeColor}; border: 1px solid ${badgeColor}30;
+                        ">${badge}</span>
                     </div>
-                    <div class="timeline-time">${timeAgo}</div>
+                    <div style="font-size: 13px; color: #475569; line-height: 1.4; word-break: break-word;">
+                        ${a.action}
+                        ${a.projectTitle ? `<span style="
+                            display: inline-flex; align-items: center; gap: 4px;
+                            margin-left: 5px; font-size: 11px; color: #6366f1;
+                            background: #eef2ff; padding: 1px 7px; border-radius: 20px;
+                        "><i class="fa-regular fa-folder" style="font-size:10px;"></i> ${a.projectTitle}</span>` : ''}
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; border-top: 1px solid #f1f5f9; padding-top: 6px;">
+                         <span style="font-size: 11px; font-weight: 600; color: #94a3b8;">${timeAgo}</span>
+                         <span style="font-size: 10px; color: #cbd5e1;" title="${absDate}">${absDate}</span>
+                    </div>
                 </div>
             </div>
         `;
     });
+    container.innerHTML = html;
+
+    const btn = document.getElementById('viewMoreActivityBtn');
+    if (btn) {
+        btn.style.display = allActivities.length <= 5 ? 'none' : 'inline-block';
+        btn.innerHTML = isActivityExpanded ? 'Show Less <i class="fa-solid fa-chevron-up"></i>' : 'View More <i class="fa-solid fa-chevron-down"></i>';
+    }
+}
+
+function toggleActivityView() {
+    isActivityExpanded = !isActivityExpanded;
+    renderActivityLog();
+}
+
+function toggleDeadlinesView() {
+    isDeadlinesExpanded = !isDeadlinesExpanded;
+    renderDeadlines();
 }

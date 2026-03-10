@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt');
 
 
 // 1️⃣ Suspend User (Admin only)
-const suspendUser = async (req, res) => {
+const suspendUser = async (req, res, next) => {
     const userId = req.params.id;
 
     try {
@@ -16,26 +16,29 @@ const suspendUser = async (req, res) => {
 
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: "Server error" });
+        next(error);
     }
 };
 
 // 0️⃣ Get All Users (Admin only)
-const getAllUsers = async (req, res) => {
+const getAllUsers = async (req, res, next) => {
     try {
-        const [users] = await db.execute(
-            "SELECT id, name, email, role, status, profile_image FROM users"
-        );
+        const [users] = await db.execute(`
+            SELECT u.id, u.name, u.email, u.role, u.designation, u.status, u.profile_image, u.created_at,
+            (SELECT COUNT(*) FROM project_members pm WHERE pm.user_id = u.id) as projects_count
+            FROM users u
+            ORDER BY u.created_at DESC
+        `);
         res.json(users);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: "Server error" });
+        next(error);
     }
 };
 
 
 // 2️⃣ Activate User
-const activateUser = async (req, res) => {
+const activateUser = async (req, res, next) => {
     const userId = req.params.id;
 
     try {
@@ -47,13 +50,13 @@ const activateUser = async (req, res) => {
         res.json({ message: "User activated successfully" });
 
     } catch (error) {
-        res.status(500).json({ message: "Server error" });
+        next(error);
     }
 };
 
 
 // 3️⃣ Promote to Admin
-const promoteUser = async (req, res) => {
+const promoteUser = async (req, res, next) => {
     const userId = req.params.id;
 
     try {
@@ -65,13 +68,13 @@ const promoteUser = async (req, res) => {
         res.json({ message: "User promoted to admin" });
 
     } catch (error) {
-        res.status(500).json({ message: "Server error" });
+        next(error);
     }
 };
 
 
 // 4️⃣ Demote Admin (protect last admin)
-const demoteUser = async (req, res) => {
+const demoteUser = async (req, res, next) => {
     const userId = req.params.id;
 
     try {
@@ -91,13 +94,13 @@ const demoteUser = async (req, res) => {
         res.json({ message: "Admin demoted successfully" });
 
     } catch (error) {
-        res.status(500).json({ message: "Server error" });
+        next(error);
     }
 };
 
 
 // 5️⃣ Delete User (Admin protection)
-const deleteUser = async (req, res) => {
+const deleteUser = async (req, res, next) => {
     const userId = req.params.id;
 
     try {
@@ -140,10 +143,52 @@ const deleteUser = async (req, res) => {
 
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: "Server error" });
+        next(error);
     }
 };
 
+// 6️⃣ Get Profile
+const getProfile = async (req, res, next) => {
+    const userId = req.user.id;
+    try {
+        const [[user]] = await db.execute(`
+            SELECT id, name, email, role, designation, status, profile_image, created_at,
+            (SELECT COUNT(*) FROM project_members WHERE user_id = users.id) as projectCount,
+            (SELECT COUNT(*) FROM tasks WHERE assigned_to = users.id AND status = 'completed') as taskCount
+            FROM users WHERE id = ?
+        `, [userId]);
+        if (!user) return res.status(404).json({ message: "User not found" });
+        res.json(user);
+    } catch (error) {
+        next(error);
+    }
+};
+
+// 7️⃣ Update Profile
+const updateProfile = async (req, res, next) => {
+    const userId = req.user.id;
+    const { name, designation, password } = req.body;
+
+    try {
+        let query = "UPDATE users SET name = ?, designation = ?";
+        let params = [name, designation];
+
+        if (password && password.trim() !== '') {
+            const salt = await bcrypt.genSalt(10);
+            const hashedPassword = await bcrypt.hash(password, salt);
+            query += ", password = ?";
+            params.push(hashedPassword);
+        }
+
+        query += " WHERE id = ?";
+        params.push(userId);
+
+        await db.execute(query, params);
+        res.json({ message: "Profile updated successfully" });
+    } catch (error) {
+        next(error);
+    }
+};
 
 module.exports = {
     suspendUser,
@@ -151,5 +196,7 @@ module.exports = {
     promoteUser,
     demoteUser,
     deleteUser,
-    getAllUsers
+    getAllUsers,
+    getProfile,
+    updateProfile
 };

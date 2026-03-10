@@ -7,8 +7,8 @@ const logActivity = require('../utils/activityLogger');
 
 
 // 1️⃣ REGISTER
-exports.register = async (req, res) => {
-    const { name, email, password, role } = req.body;
+exports.register = async (req, res, next) => {
+    const { name, email, password, role, designation } = req.body;
 
     try {
         // Check if email already exists
@@ -29,21 +29,21 @@ exports.register = async (req, res) => {
 
         // Insert user
         await db.execute(
-            'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)',
-            [name, email, hashedPassword, userRole]
+            'INSERT INTO users (name, email, password, role, designation) VALUES (?, ?, ?, ?, ?)',
+            [name, email, hashedPassword, userRole, designation || 'Member']
         );
 
         res.status(201).json({ message: 'User registered successfully' });
 
     } catch (error) {
-        res.status(500).json({ message: 'Server error' });
+        next(error);
     }
 };
 
 
 
 // 2️⃣ LOGIN
-exports.login = async (req, res) => {
+exports.login = async (req, res, next) => {
     const { email, password } = req.body;
 
     try {
@@ -72,7 +72,7 @@ exports.login = async (req, res) => {
 
         // Generate Token
         const token = jwt.sign(
-            { id: user.id, name: user.name, role: user.role, email: user.email }, // Added email to token
+            { id: user.id, name: user.name, role: user.role, email: user.email, designation: user.designation }, // Added email and designation to token
             process.env.JWT_SECRET,
             { expiresIn: '24h' }
         );
@@ -90,9 +90,6 @@ exports.login = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("REAL ERROR:", error);
-        res.status(500).json({ message: error.message });
+        next(error);
     }
-
-
 };
