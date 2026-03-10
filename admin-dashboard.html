@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="users.css">
     <link rel="stylesheet" href="chat.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
@@ -26,23 +27,25 @@
                 <span>R.S.Portal</span>
             </div>
             <ul class="nav">
-                <li class="active" id="navDashboard">
+                <li id="navDashboard">
                     <i class="fa-solid fa-border-all"></i> &nbsp; Dashboard
                 </li>
 
                 <li id="navProjects">
                     <i class="fa-regular fa-folder"></i> &nbsp; Projects
                 </li>
+                <li id="navTasks" style="display:none;">
+                    <i class="fa-regular fa-circle-check"></i> &nbsp; Tasks
+                </li>
 
-                <!-- Tasks less relevant for admin overview, but can keep. Let's prioritize Users -->
-                <li id="navUsers">
-                    <i class="fa-solid fa-users"></i> &nbsp; User Management
+
+                <li id="navUsers" style="display:none;">
+                    <i class="fa-solid fa-users"></i> &nbsp; Users
+                </li>
+                <li id="navDbManager" style="display:none;">
+                    <i class="fa-solid fa-database"></i> &nbsp; DB Manager
                 </li>
             </ul>
-            <div class="bottom-menu">
-                <div id="navLogout" style="cursor: pointer;"><i class="fa-solid fa-arrow-right-from-bracket"></i>
-                    &nbsp; Log Out</div>
-            </div>
         </div>
 
         <!-- Main Content -->
@@ -58,13 +61,35 @@
                         <i class="fa-solid fa-magnifying-glass search-icon"></i>
                         <input type="text" id="globalSearch" class="search" placeholder="Search type of keywords">
                     </div>
-                    <div class="notification" id="notifBtn" style="cursor: pointer;">
+                    <div class="notification" id="notifBtn" style="cursor: pointer; position: relative;">
                         <i class="fa-regular fa-bell"></i>
-                        <span class="notif-dot"></span>
+                        <span class="notif-dot" id="notifDot" style="display: none;"></span>
+                        <!-- Notification Dropdown -->
+                        <div class="notif-dropdown" id="notifDropdown">
+                            <div class="notif-header">
+                                <span>Notifications</span>
+                                <button id="markAllRead" class="btn-text-sm">Clear All</button>
+                            </div>
+                            <div class="notif-list" id="notifList">
+                                <p class="notif-empty">No new notifications</p>
+                            </div>
+                        </div>
                     </div>
-                    <div class="user">
+                    <div class="topbar-divider"></div>
+                    <div class="user" id="userMenuBtn" style="cursor: pointer; position: relative;">
                         <div class="user-avatar" id="user-avatar"></div>
+                        <span id="usernameDisplay"
+                            style="font-weight: 600; color: var(--text-color); margin-right: 4px;">User</span>
                         <span class="arrow"><i class="fa-solid fa-chevron-down"></i></span>
+                        <!-- User Dropdown -->
+                        <div class="user-dropdown" id="userDropdown">
+                            <div class="dropdown-item" onclick="window.location.href='profile.html'">
+                                <i class="fa-regular fa-user"></i> My Profile
+                            </div>
+                            <div class="dropdown-item" onclick="logout()">
+                                <i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -72,67 +97,83 @@
             <!-- Dashboard Content -->
             <div class="dashboard-area" id="dashboard-section">
 
-                <!-- NEW: Welcome Header -->
-                <div style="margin-bottom: 25px;">
-                    <h2 style="font-size: 24px; color: #1e293b; margin-bottom: 5px;">Dashboard</h2>
-                    <p style="color: #64748b;">Welcome back, Admin</p>
+                <!-- WELCOME BANNER -->
+                <div class="dash-welcome-banner">
+                    <div>
+                        <h2 class="dash-welcome-title">Admin Dashboard</h2>
+                        <p class="dash-welcome-sub">Welcome back, <strong id="welcome-name">Admin</strong> — here's
+                            what's happening today.</p>
+                    </div>
+                    <div class="dash-welcome-date" id="dash-date"></div>
                 </div>
 
                 <!-- OVERVIEW STATS (4 Cards) -->
                 <div class="stats-grid-4">
                     <!-- Project Card -->
-                    <div class="stat-card-modern">
+                    <div class="stat-card-modern accent-blue reveal">
                         <div class="stat-content">
+                            <div class="stat-label"
+                                style="margin-bottom: 6px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.6px; color: #64748b; font-weight: 600;">
+                                Total Projects</div>
                             <div class="stat-value" id="totalProjects">0</div>
-                            <div class="stat-label">Total Projects</div>
+                            <div style="font-size: 11px; color: #94a3b8; margin-top: 6px;"><i
+                                    class="fa-solid fa-folder-open" style="color:#3b82f6; margin-right:4px;"></i> Active
+                                & Ongoing</div>
                         </div>
-                        <div class="stat-icon-box bg-blue">
-                            <i class="fa-regular fa-folder-open"></i>
-                        </div>
+                        <div class="stat-icon-box bg-blue"><i class="fa-regular fa-folder-open"></i></div>
                     </div>
 
                     <!-- Tasks Card -->
-                    <div class="stat-card-modern">
+                    <div class="stat-card-modern accent-purple reveal">
                         <div class="stat-content">
+                            <div class="stat-label"
+                                style="margin-bottom: 6px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.6px; color: #64748b; font-weight: 600;">
+                                Total Tasks</div>
                             <div class="stat-value" id="totalTasks">0</div>
-                            <div class="stat-label">Total Tasks</div>
+                            <div style="font-size: 11px; color: #94a3b8; margin-top: 6px;"><i
+                                    class="fa-solid fa-list-check" style="color:#8b5cf6; margin-right:4px;"></i> All
+                                task entries</div>
                         </div>
-                        <div class="stat-icon-box bg-purple">
-                            <i class="fa-solid fa-list-check"></i>
-                        </div>
+                        <div class="stat-icon-box bg-purple"><i class="fa-solid fa-list-check"></i></div>
                     </div>
 
                     <!-- Completed Card -->
-                    <div class="stat-card-modern">
+                    <div class="stat-card-modern accent-green reveal">
                         <div class="stat-content">
+                            <div class="stat-label"
+                                style="margin-bottom: 6px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.6px; color: #64748b; font-weight: 600;">
+                                Completed</div>
                             <div class="stat-value" id="completedTasks">0</div>
-                            <div class="stat-label">Completed Tasks</div>
+                            <div style="font-size: 11px; color: #94a3b8; margin-top: 6px;"><i
+                                    class="fa-regular fa-circle-check" style="color:#22c55e; margin-right:4px;"></i>
+                                Tasks finished</div>
                         </div>
-                        <div class="stat-icon-box bg-green">
-                            <i class="fa-regular fa-circle-check"></i>
-                        </div>
+                        <div class="stat-icon-box bg-green"><i class="fa-regular fa-circle-check"></i></div>
                     </div>
 
                     <!-- Users Card -->
-                    <div class="stat-card-modern">
+                    <div class="stat-card-modern accent-orange reveal">
                         <div class="stat-content">
+                            <div class="stat-label"
+                                style="margin-bottom: 6px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.6px; color: #64748b; font-weight: 600;">
+                                Total Users</div>
                             <div class="stat-value" id="totalMembers">0</div>
-                            <div class="stat-label">Total Users</div>
+                            <div style="font-size: 11px; color: #94a3b8; margin-top: 6px;"><i class="fa-solid fa-users"
+                                    style="color:#f97316; margin-right:4px;"></i> Registered members</div>
                         </div>
-                        <div class="stat-icon-box bg-orange">
-                            <i class="fa-solid fa-users"></i>
-                        </div>
+                        <div class="stat-icon-box bg-orange"><i class="fa-solid fa-users"></i></div>
                     </div>
                 </div>
 
-                <!-- TASK PRIORITY (Secondary Row - Real Data) -->
-                <div class="stats-grid-4" style="margin-top: 20px;">
-                    <div class="stat-card-sm">
+                <!-- TASK PRIORITY ROW -->
+                <div class="stats-grid-4">
+                    <div class="stat-card-sm priority-card-high">
                         <div class="status-icon warning"><i class="fa-solid fa-fire"></i></div>
                         <div>
                             <div class="stat-value-sm" id="highPriorityTasks">0</div>
                             <div class="stat-label-sm">High Priority</div>
                         </div>
+                        <div class="priority-badge high">URGENT</div>
                     </div>
                     <div class="stat-card-sm">
                         <div class="status-icon info"><i class="fa-solid fa-layer-group"></i></div>
@@ -148,103 +189,164 @@
                             <div class="stat-label-sm">Low Priority</div>
                         </div>
                     </div>
-                    <div class="stat-card-sm">
+                    <div class="stat-card-sm priority-card-overdue">
                         <div class="status-icon purple"><i class="fa-solid fa-clock"></i></div>
                         <div>
                             <div class="stat-value-sm" id="overdueTasks">0</div>
                             <div class="stat-label-sm">Overdue Tasks</div>
                         </div>
+                        <div class="priority-badge overdue">LATE</div>
                     </div>
                 </div>
 
                 <!-- CHARTS ROW -->
-                <div class="charts-grid-3" style="margin-top: 25px;">
+                <div class="charts-grid-3">
                     <!-- 1. Project Stats -->
-                    <div class="card-box">
+                    <div class="card-box reveal">
                         <div class="card-header-clean">
-                            <h3>Project Stats</h3>
+                            <div>
+                                <h3>Task Breakdown</h3>
+                                <span class="sub-label">Status distribution</span>
+                            </div>
                             <select class="select-sm" id="projectStatsFilter">
                                 <option value="week">This Week</option>
                                 <option value="month">This Month</option>
                             </select>
                         </div>
-                        <div style="height: 200px; position: relative;">
+                        <div style="height: 220px; position: relative;">
                             <canvas id="projectStatsChart"></canvas>
                         </div>
                     </div>
 
                     <!-- 2. Performance -->
-                    <div class="card-box">
+                    <div class="card-box reveal">
                         <div class="card-header-clean">
-                            <h3>Performance</h3>
+                            <div>
+                                <h3>Task Performance</h3>
+                                <span class="sub-label">Created vs Completed</span>
+                            </div>
                             <select class="select-sm" id="performanceFilter">
                                 <option value="week">This Week</option>
                                 <option value="month">This Month</option>
                             </select>
                         </div>
-                        <div style="height: 200px; position: relative;">
+                        <div style="height: 220px; position: relative;">
                             <canvas id="performanceChart"></canvas>
                         </div>
                     </div>
 
-                    <!-- 3. User Growth (NEW) -->
-                    <div class="card-box">
+                    <!-- 3. User Growth -->
+                    <div class="card-box reveal">
                         <div class="card-header-clean">
-                            <h3>User Growth</h3>
-                            <span class="sub-label">Monthly registered</span>
+                            <div>
+                                <h3>User Growth</h3>
+                                <span class="sub-label">Monthly registrations</span>
+                            </div>
+                            <span class="sub-label"
+                                style="background:#eef2ff; color:#6366f1; padding: 3px 10px; border-radius: 20px; font-weight: 600; font-size: 11px;">6
+                                Months</span>
                         </div>
-                        <div style="height: 200px; position: relative;">
+                        <div style="height: 220px; position: relative;">
                             <canvas id="userGrowthChart"></canvas>
                         </div>
                     </div>
                 </div>
 
                 <!-- BOTTOM SECTION: Activity & Team -->
-                <div class="bottom-grid-2" style="margin-top: 25px;">
+                <div class="bottom-grid-2">
                     <!-- Activity Log -->
-                    <div class="card-box">
+                    <div class="card-box reveal" style="overflow: hidden;">
                         <div class="card-header-clean">
-                            <h3>Admin Activity Log</h3>
-                            <span class="sub-label">Recent administrative actions</span>
-                        </div>
-                        <div class="timeline-feed" id="activity-list">
-                            <!-- JS Injected -->
-                            <p>Loading activity...</p>
-                        </div>
-                        <div class="card-footer-action"
-                            style="text-align: center; margin-top: 15px; border-top: 1px solid #f1f5f9; padding-top: 10px;">
-                            <button id="viewMoreActivityBtn" class="btn-text-sm"
-                                style="color: #3b82f6; background: none; border: none; font-weight: 500; cursor: pointer;">
-                                View More <i class="fa-solid fa-chevron-down"></i>
+                            <div>
+                                <h3 style="margin: 0 0 2px 0;">Activity Log</h3>
+                                <span class="sub-label">Real-time administrative actions</span>
+                            </div>
+                            <button onclick="loadAdminActivity()" class="btn-ghost" title="Refresh">
+                                <i class="fa-solid fa-arrows-rotate"></i> Refresh
                             </button>
                         </div>
+                        <div id="activity-list" style="max-height: 420px; overflow-y: auto; padding-right: 4px;">
+                            <p style="color:#94a3b8; text-align:center; padding: 20px;">Loading activity...</p>
+                        </div>
+                        <button id="viewMoreActivityBtn" class="btn-text">
+                            View More <i class="fa-solid fa-chevron-down"></i>
+                        </button>
                     </div>
 
-                    <!-- Team Members -->
-                    <div class="card-box">
-                        <div class="card-header-clean">
-                            <h3>Team Members</h3>
-                            <span class="sub-label"><span id="total-members-count-2">0</span> members</span>
+                    <!-- RIGHT COLUMN: TEAM & DEADLINES -->
+                    <div style="display: flex; flex-direction: column; gap: 24px; min-width: 0;">
+
+                        <!-- Team Members -->
+                        <div class="card-box reveal" style="flex: 1;">
+                            <div class="card-header-clean" style="margin-bottom: 20px;">
+                                <div>
+                                    <h3
+                                        style="font-size: 20px; font-weight: 800; letter-spacing: -0.6px; color: #1e293b;">
+                                        Team Members</h3>
+                                    <span class="sub-label" style="font-weight: 600; color: #64748b; font-size: 13px;">
+                                        <span id="total-members-count-2" style="color: #6366f1;">0</span> registered
+                                        members
+                                    </span>
+                                </div>
+                                <button onclick="window.location.href='users.html'" class="btn-icon-premium"
+                                    title="Manage Users">
+                                    <i class="fa-solid fa-chevron-right"></i>
+                                </button>
+                            </div>
+                            <div class="team-controls"
+                                style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px;">
+                                <div
+                                    style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
+                                    <div class="search-wrapper-sm"
+                                        style="flex: 1; min-width: 200px; background: #f8fafc; padding: 8px 14px; border-radius: 12px; border: 1.5px solid #e2e8f0; display: flex; align-items: center; gap: 10px; transition: all 0.2s focus-within;">
+                                        <i class="fa-solid fa-magnifying-glass"
+                                            style="color: #94a3b8; font-size: 13px;"></i>
+                                        <input type="text" id="teamSearchInput" placeholder="Search members..."
+                                            style="border: none; background: transparent; outline: none; width: 100%; font-size: 13px; font-weight: 500; color: #1e293b;">
+                                    </div>
+                                    <div
+                                        style="display: flex; align-items: center; gap: 10px; background: #f8fafc; padding: 8px 14px; border-radius: 12px; border: 1.5px solid #e2e8f0;">
+                                        <i class="fa-solid fa-arrow-down-wide-short"
+                                            style="color: #94a3b8; font-size: 13px;"></i>
+                                        <select id="teamSortSelect"
+                                            style="border: none; background: transparent; outline: none; color: #475569; font-size: 12px; font-weight: 700; cursor: pointer;">
+                                            <option value="name-asc">Name (A-Z)</option>
+                                            <option value="name-desc">Name (Z-A)</option>
+                                            <option value="designation-asc">Role (A-Z)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <!-- Filter chips for team (dynamically filled) -->
+                                <div class="filter-scroll-wrapper"
+                                    style="position: relative; display: flex; align-items: center; gap: 10px; width: 100%; min-width: 0; overflow: hidden;">
+                                    <button id="scrollLeftTeam" class="btn-scroll-nav" style="display: none;">
+                                        <i class="fa-solid fa-chevron-left"></i>
+                                    </button>
+
+                                    <div id="teamFilters" class="filter-chips-scrollable"
+                                        style="display: flex; gap: 8px; overflow-x: auto; scroll-behavior: smooth; flex: 1; padding: 5px 2px; -ms-overflow-style: none; scrollbar-width: none;">
+                                    </div>
+
+                                    <button id="scrollRightTeam" class="btn-scroll-nav" style="display: none;">
+                                        <i class="fa-solid fa-chevron-right"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="members-grid-compact" id="members-grid-container">
+                                <!-- JS Injected -->
+                            </div>
+                            <div class="card-footer-action"
+                                style="text-align: center; margin-top: 15px; border-top: 1px solid #f1f5f9; padding-top: 10px;">
+                                <button id="viewMoreMembersBtn" class="btn-text-sm"
+                                    style="color: #6366f1; background: none; border: none; font-weight: 600; cursor: pointer; font-size: 12px;">
+                                    View More <i class="fa-solid fa-chevron-down"></i>
+                                </button>
+                            </div>
                         </div>
 
-                        <!-- Filter chips for team -->
-                        <div class="filter-chips-sm" style="margin-bottom: 15px;" id="teamFilters">
-                            <button class="chip active" data-filter="all">All</button>
-                            <button class="chip" data-filter="Developer">Developer</button>
-                            <button class="chip" data-filter="Manager">Manager</button>
-                            <button class="chip" data-filter="Designer">Designer</button>
-                        </div>
 
-                        <div class="members-grid-compact" id="members-grid-container">
-                            <!-- JS Injected -->
-                        </div>
-                        <div class="card-footer-action"
-                            style="text-align: center; margin-top: 15px; border-top: 1px solid #f1f5f9; padding-top: 10px;">
-                            <button id="viewMoreMembersBtn" class="btn-text-sm"
-                                style="color: #3b82f6; background: none; border: none; font-weight: 500; cursor: pointer;">
-                                View More <i class="fa-solid fa-chevron-down"></i>
-                            </button>
-                        </div>
+
                     </div>
                 </div>
 
@@ -253,6 +355,7 @@
 
         </div>
     </div>
+
 
     <script src="app.js"></script>
     <script src="dashboard-common.js"></script>

@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Manager - R.S.Portal</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <style>
+        .db-container {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 0;
+            height: calc(100vh - 120px);
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            margin-top: 10px;
+        }
+
+        .db-sidebar {
+            background: rgba(248, 250, 252, 0.5);
+            border-right: 1px solid rgba(226, 232, 240, 0.6);
+            display: flex;
+            flex-direction: column;
+            padding: 24px 0;
+            min-height: 0;
+        }
+
+        .db-sidebar-header {
+            padding: 0 24px 20px;
+            border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+            margin-bottom: 20px;
+        }
+
+        .db-sidebar-title {
+            font-size: 12px;
+            font-weight: 800;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .db-nav-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-height: 0;
+        }
+
+        .db-nav-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .db-nav-list::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        .db-nav-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .db-content {
+            background: rgba(255, 255, 255, 0.4);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .db-toolbar {
+            padding: 28px 32px;
+            border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.6);
+        }
+
+        .db-table-area {
+            flex: 1;
+            padding: 32px;
+            overflow: auto;
+            background: transparent;
+        }
+
+        .db-table-wrapper {
+            background: white;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+            overflow: auto;
+            max-height: 100%;
+        }
+
+        .db-footer {
+            padding: 20px 32px;
+            background: rgba(255, 255, 255, 0.8);
+            border-top: 1px solid rgba(226, 232, 240, 0.6);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .db-sidebar-item {
+            padding: 14px 18px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            font-size: 14px;
+            font-weight: 700;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid transparent;
+        }
+
+        .db-sidebar-item:hover {
+            background: white;
+            color: #6366f1;
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+        }
+
+        .db-sidebar-item.active {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.2);
+            border: none;
+        }
+
+        .db-sidebar-item i {
+            width: 20px;
+            text-align: center;
+            font-size: 16px;
+        }
+
+        /* Modern Table Adjustments */
+        .modern-table th {
+            background: #f8fafc;
+            padding: 18px 20px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #64748b;
+            font-weight: 800;
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            border-bottom: 2px solid #f1f5f9;
+        }
+
+        .modern-table td {
+            padding: 16px 20px;
+            font-size: 13.5px;
+            color: #334155;
+            font-weight: 500;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .modern-table tr:hover td {
+            background: #fcfdfe;
+        }
+
+        .db-action-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #e2e8f0;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-left: 6px;
+        }
+
+        .db-action-btn.edit:hover {
+            background: #eef2ff;
+            color: #6366f1;
+            border-color: #6366f1;
+        }
+
+        .db-action-btn.delete:hover {
+            background: #fef2f2;
+            color: #ef4444;
+            border-color: #ef4444;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="layout">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+                <img src="assets/logo.jpg" alt="R.S.Portal Logo">
+                <span>R.S.Portal</span>
+            </div>
+            <ul class="nav">
+                <li id="navDashboard">
+                    <i class="fa-solid fa-border-all"></i> &nbsp; Dashboard
+                </li>
+                <li id="navProjects">
+                    <i class="fa-regular fa-folder"></i> &nbsp; Projects
+                </li>
+                <li id="navTasks" style="display:none;">
+                    <i class="fa-regular fa-circle-check"></i> &nbsp; Tasks
+                </li>
+                <li id="navUsers" style="display:none;">
+                    <i class="fa-solid fa-users"></i> &nbsp; Users
+                </li>
+                <li id="navDbManager" class="active">
+                    <i class="fa-solid fa-database"></i> &nbsp; DB Manager
+                </li>
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main">
+            <!-- Topbar -->
+            <div class="topbar">
+                <div class="top-left">
+                    <div class="breadcrumb">Pages / <span class="crumb-active">Database Manager</span></div>
+                    <div class="page-subtitle">System Administration</div>
+                </div>
+                <div class="top-right">
+                    <div class="topbar-divider"></div>
+                    <div class="user" id="userMenuBtn" style="cursor: pointer; position: relative;">
+                        <div class="user-avatar" id="user-avatar"></div>
+                        <span id="usernameDisplay"
+                            style="font-weight: 600; color: var(--text-color); margin-right: 4px;">Admin</span>
+                        <span class="arrow"><i class="fa-solid fa-chevron-down"></i></span>
+                        <!-- User Dropdown -->
+                        <div class="user-dropdown" id="userDropdown">
+                            <div class="dropdown-item" onclick="window.location.href='profile.html'">
+                                <i class="fa-regular fa-user"></i> My Profile
+                            </div>
+                            <div class="dropdown-item" onclick="logout()">
+                                <i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-area">
+                <!-- WELCOME BANNER -->
+                <div class="dash-welcome-banner" style="margin-bottom: 25px;">
+                    <div>
+                        <h2 class="dash-welcome-title">Database Manager</h2>
+                        <p class="dash-welcome-sub">Deep-level data management and system oversight.</p>
+                    </div>
+                    <div class="dash-welcome-date" id="dash-date"></div>
+                </div>
+                <div class="db-container">
+                    <!-- Left Sidebar: Tables List -->
+                    <div class="db-sidebar">
+                        <div class="db-sidebar-header">
+                            <div class="db-sidebar-title">Database Tables</div>
+                        </div>
+                        <div id="db-sidebar-list" class="db-nav-list">
+                            <div class="db-sidebar-item active" data-table="users"><i class="fa-solid fa-users"></i>
+                                Users</div>
+                            <div class="db-sidebar-item" data-table="projects"><i class="fa-solid fa-folder"></i>
+                                Projects</div>
+                            <div class="db-sidebar-item" data-table="tasks"><i class="fa-solid fa-list-check"></i> Tasks
+                            </div>
+                            <div class="db-sidebar-item" data-table="messages"><i class="fa-solid fa-message"></i>
+                                Messages</div>
+                            <div class="db-sidebar-item" data-table="code_snippets"><i class="fa-solid fa-code"></i>
+                                Files (Code Snippets)</div>
+                            <div class="db-sidebar-item" data-table="meetings"><i class="fa-solid fa-calendar-days"></i>
+                                Meetings</div>
+                            <div class="db-sidebar-item" data-table="notifications"><i class="fa-solid fa-bell"></i>
+                                Notifications</div>
+                            <div class="db-sidebar-item" data-table="activity_logs"><i
+                                    class="fa-solid fa-clock-rotate-left"></i> Activity Logs</div>
+                            <div class="db-sidebar-item" data-table="project_members"><i
+                                    class="fa-solid fa-user-group"></i> Project Members</div>
+                            <div class="db-sidebar-item" data-table="task_comments"><i class="fa-solid fa-comments"></i>
+                                Task Comments</div>
+                            <div class="db-sidebar-item" data-table="attachments"><i class="fa-solid fa-paperclip"></i>
+                                Attachments</div>
+                            <div class="db-sidebar-item" data-table="meeting_participants"><i
+                                    class="fa-solid fa-users-rectangle"></i> Meeting Guests</div>
+                            <div class="db-sidebar-item" data-table="project_invitations"><i
+                                    class="fa-solid fa-envelope-open-text"></i> Project Invites</div>
+                            <div class="db-sidebar-item" data-table="task_status_history"><i
+                                    class="fa-solid fa-timeline"></i> Task History</div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Data & Management -->
+                    <div class="db-content">
+                        <div class="db-toolbar">
+                            <div style="display: flex; align-items: center; gap: 20px;">
+                                <div class="search-wrapper" style="width: 320px; margin: 0;">
+                                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                                    <input type="text" id="dbSearch" class="search"
+                                        placeholder="Search records in this table...">
+                                </div>
+                            </div>
+                            <button id="addDbRecordBtn" class="btn-primary"
+                                style="padding: 10px 20px; border-radius: 12px; font-weight: 600;">
+                                <i class="fa-solid fa-plus"></i> &nbsp;Add Record
+                            </button>
+                        </div>
+
+                        <div class="db-table-area">
+                            <div class="db-table-wrapper">
+                                <table id="dbTable" class="modern-table">
+                                    <thead id="dbTableHead"></thead>
+                                    <tbody id="dbTableBody">
+                                        <tr>
+                                            <td colspan="100%"
+                                                style="text-align: center; padding: 100px; color: #94a3b8;">
+                                                <i class="fa-solid fa-spinner fa-spin" style="font-size: 24px;"></i>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="db-footer"
+                            style="padding: 15px 25px; border-top: 1px solid #f1f5f9; background: #fafbfc; display: flex; justify-content: space-between; align-items: center; position: sticky; bottom: 0; z-index: 20; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;">
+                            <div id="db-pagination-info"
+                                style="font-size: 13px; color: #64748b; font-weight: 600; min-width: 200px;">
+                                Showing 0 of 0 records
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <button id="dbPrevPage" onclick="changeDbPage(-1)" class="btn-icon-premium"
+                                    style="width: 36px; height: 36px; border-radius: 10px; border: 1px solid #e2e8f0; background: white; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fa-solid fa-chevron-left" style="font-size: 11px; color: #64748b;"></i>
+                                </button>
+
+                                <!-- Page Numbers Container -->
+                                <div id="db-page-numbers-container"
+                                    style="display: flex; gap: 6px; align-items: center;">
+                                    <!-- Numbers injected by JS -->
+                                </div>
+
+                                <button id="dbNextPage" onclick="changeDbPage(1)" class="btn-icon-premium"
+                                    style="width: 36px; height: 36px; border-radius: 10px; border: 1px solid #e2e8f0; background: white; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fa-solid fa-chevron-right" style="font-size: 11px; color: #64748b;"></i>
+                                </button>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 20px;">
+                                <div
+                                    style="display: flex; align-items: center; gap: 8px; background: white; padding: 6px 14px; border-radius: 10px; border: 1px solid #e2e8f0;">
+                                    <span
+                                        style="font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">Show:</span>
+                                    <select id="dbLimit" onchange="changeLimit(this.value)"
+                                        style="border: none; background: transparent; outline: none; color: #6366f1; font-weight: 800; cursor: pointer; font-size: 12px;">
+                                        <option value="10">10</option>
+                                        <option value="20">20</option>
+                                        <option value="50" selected>50</option>
+                                        <option value="100">100</option>
+                                    </select>
+                                </div>
+                                <div
+                                    style="font-size: 12px; color: #94a3b8; font-weight: 600; min-width: 100px; text-align: right;">
+                                    Total <span id="db-total-pages" style="color: #64748b; font-weight: 700;">1</span>
+                                    pages
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DB RECORD MODAL (Add/Edit) -->
+    <div id="dbRecordModal" class="modal">
+        <div class="modal-content"
+            style="width: 580px; max-height: 85vh; overflow: hidden; padding: 0; border-radius: 28px; border: 1px solid rgba(255,255,255,0.2); box-shadow: var(--shadow-2xl); display: flex; flex-direction: column;">
+            <div
+                style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); padding: 35px 40px; color: white; position: relative;">
+                <span class="close" data-modal="dbRecordModal"
+                    style="color: white; opacity: 0.8; top: 25px; right: 30px; font-size: 28px;">&times;</span>
+                <h2 id="dbModalTitle" style="margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.5px;">Add
+                    New Record</h2>
+                <div style="display: flex; align-items: center; gap: 8px; margin-top: 8px; opacity: 0.9;">
+                    <i class="fa-solid fa-table" style="font-size: 12px;"></i>
+                    <p id="dbModalTableLabel"
+                        style="margin: 0; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">
+                        Table: Users</p>
+                </div>
+            </div>
+
+            <div style="flex: 1; overflow-y: auto; padding: 40px;">
+                <form id="dbRecordForm">
+                    <div id="dbFormFields" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                        <!-- Fields injected by JS -->
+                    </div>
+                    <div style="margin-top: 45px; display: flex; gap: 16px;">
+                        <button type="button" class="btn-text-sm" onclick="closeModal('dbRecordModal')"
+                            style="flex: 1; padding: 14px; border: 1.5px solid #e2e8f0; border-radius: 14px; font-weight: 700; color: #64748b;">Cancel</button>
+                        <button type="submit" class="btn-primary"
+                            style="flex: 1.5; padding: 14px; border-radius: 14px; justify-content: center; font-weight: 700; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); box-shadow: 0 10px 20px rgba(79, 70, 229, 0.2);">Save
+                            Record</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- DELETE CONFIRMATION MODAL -->
+    <div id="deleteModal" class="modal" style="z-index: 3000;">
+        <div class="modal-content"
+            style="width: 420px; text-align: center; padding: 50px 40px; border-radius: 28px; box-shadow: var(--shadow-2xl);">
+            <div
+                style="width: 90px; height: 90px; background: #fee2e2; color: #ef4444; border-radius: 30px; display: flex; align-items: center; justify-content: center; margin: 0 auto 30px; font-size: 38px; box-shadow: 0 15px 30px rgba(239, 68, 68, 0.15); transform: rotate(-5deg);">
+                <i class="fa-solid fa-trash-can"></i>
+            </div>
+            <h2 style="margin-bottom: 12px; font-size: 26px; font-weight: 800; letter-spacing: -0.5px; color: #1e293b;">
+                Confirm Deletion</h2>
+            <p style="color: #64748b; font-size: 15px; margin-bottom: 35px; line-height: 1.6; font-weight: 500;">Are you
+                sure you want to
+                permanently delete this record? This action cannot be reversed and may affect related data.</p>
+            <div style="display: flex; gap: 16px;">
+                <button class="btn-text-sm" onclick="closeModal('deleteModal')"
+                    style="flex: 1; border: 1.5px solid #e2e8f0; border-radius: 14px; padding: 14px; font-weight: 700; color: #64748b;">Cancel</button>
+                <button id="confirmDeleteBtn" class="btn-primary"
+                    style="flex: 1.2; background: #ef4444; border: none; border-radius: 14px; padding: 14px; font-weight: 700; color: white; box-shadow: 0 10px 20px rgba(239, 68, 68, 0.2);">Delete
+                    Forever</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script src="db-manager.js"></script>
+</body>
+
+</html>

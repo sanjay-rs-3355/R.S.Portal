@@ -13,11 +13,13 @@
     <link rel="stylesheet" href="users.css">
     <link rel="stylesheet" href="chat.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
 
+    <div id="toast-container"></div>
     <div class="layout">
         <!-- Sidebar -->
         <div class="sidebar">
@@ -26,7 +28,7 @@
                 <span>R.S.Portal</span>
             </div>
             <ul class="nav">
-                <li class="active" id="navDashboard">
+                <li id="navDashboard">
                     <i class="fa-solid fa-border-all"></i> &nbsp; Dashboard
                 </li>
 
@@ -34,14 +36,18 @@
                     <i class="fa-regular fa-folder"></i> &nbsp; Projects
                 </li>
 
-                <li id="navTasks">
+                <li id="navTasks" style="display:none;">
                     <i class="fa-regular fa-circle-check"></i> &nbsp; Tasks
                 </li>
+
+
+                <li id="navUsers" style="display:none;">
+                    <i class="fa-solid fa-users"></i> &nbsp; Users
+                </li>
+                <li id="navDbManager" style="display:none;">
+                    <i class="fa-solid fa-database"></i> &nbsp; DB Manager
+                </li>
             </ul>
-            <div class="bottom-menu">
-                <div id="navLogout" style="cursor: pointer;"><i class="fa-solid fa-arrow-right-from-bracket"></i>
-                    &nbsp; Log Out</div>
-            </div>
         </div>
 
         <!-- Main Content -->
@@ -54,21 +60,45 @@
                 </div>
                 <div class="top-right">
                     <div id="admin-view-btn-container" style="display:none; margin-right:15px;">
-                        <button id="btnAdminView" class="btn-sm" style="background:#3b82f6; color:white;">
-                            <i class="fa-solid fa-shield-halved"></i> Admin View
+                        <button id="btnAdminView" class="btn-sm"
+                            style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color:white; border:none; padding: 10px 20px; border-radius: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); transition: all 0.3s ease;">
+                            <i class="fa-solid fa-shield-halved" style="font-size: 14px;"></i>
+                            <span style="letter-spacing: 0.3px;">Admin View</span>
                         </button>
                     </div>
                     <div class="search-wrapper">
                         <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                        <input type="text" class="search" placeholder="Search type of keywords">
+                        <input type="text" class="search" placeholder="Search activities or tasks...">
                     </div>
-                    <div class="notification">
+                    <div class="notification" id="notifBtn" style="cursor: pointer; position: relative;">
                         <i class="fa-regular fa-bell"></i>
-                        <span class="notif-dot"></span>
+                        <span class="notif-dot" id="notifDot" style="display: none;"></span>
+                        <!-- Notification Dropdown -->
+                        <div class="notif-dropdown" id="notifDropdown">
+                            <div class="notif-header">
+                                <span>Notifications</span>
+                                <button id="markAllRead" class="btn-text-sm">Clear All</button>
+                            </div>
+                            <div class="notif-list" id="notifList">
+                                <p class="notif-empty">No new notifications</p>
+                            </div>
+                        </div>
                     </div>
-                    <div class="user">
+                    <div class="topbar-divider"></div>
+                    <div class="user" id="userMenuBtn" style="cursor: pointer; position: relative;">
                         <div class="user-avatar" id="user-avatar"></div>
+                        <span id="usernameDisplay"
+                            style="font-weight: 600; color: var(--text-color); margin-right: 4px;">User</span>
                         <span class="arrow"><i class="fa-solid fa-chevron-down"></i></span>
+                        <!-- User Dropdown -->
+                        <div class="user-dropdown" id="userDropdown">
+                            <div class="dropdown-item" onclick="window.location.href='profile.html'">
+                                <i class="fa-regular fa-user"></i> My Profile
+                            </div>
+                            <div class="dropdown-item" onclick="logout()">
+                                <i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -76,19 +106,28 @@
             <!-- Dashboard Content -->
             <div class="dashboard-area" id="dashboard-section">
 
-                <!-- Welcome Header -->
-                <div style="margin-bottom: 25px;">
-                    <h2 style="font-size: 24px; color: #1e293b; margin-bottom: 5px;">Dashboard</h2>
-                    <p style="color: #64748b;">Overview of your projects and tasks</p>
+                <!-- WELCOME BANNER -->
+                <div class="dash-welcome-banner" style="margin-bottom: 25px;">
+                    <div>
+                        <h2 class="dash-welcome-title">Member Dashboard</h2>
+                        <p class="dash-welcome-sub">Welcome back, <strong id="welcome-name">Member</strong> — here's
+                            an overview of your progress.</p>
+                    </div>
+                    <div class="dash-welcome-date" id="dash-date"></div>
                 </div>
 
-                <!-- ROW 1: STATS (4 Cards) -->
+                <!-- OVERVIEW STATS (4 Cards) -->
                 <div class="stats-grid-4">
                     <!-- My Projects -->
-                    <div class="stat-card-modern">
+                    <div class="stat-card-modern accent-blue">
                         <div class="stat-content">
+                            <div class="stat-label"
+                                style="margin-bottom: 6px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: #64748b; font-weight: 700;">
+                                My Projects</div>
                             <div class="stat-value" id="myProjects">0</div>
-                            <div class="stat-label">My Projects</div>
+                            <div style="font-size: 11px; color: #94a3b8; margin-top: 6px;"><i
+                                    class="fa-regular fa-folder" style="color:#3b82f6; margin-right:4px;"></i> In
+                                progress</div>
                         </div>
                         <div class="stat-icon-box bg-blue">
                             <i class="fa-regular fa-folder-open"></i>
@@ -96,10 +135,15 @@
                     </div>
 
                     <!-- My Tasks -->
-                    <div class="stat-card-modern">
+                    <div class="stat-card-modern accent-purple">
                         <div class="stat-content">
+                            <div class="stat-label"
+                                style="margin-bottom: 6px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: #64748b; font-weight: 700;">
+                                My Tasks</div>
                             <div class="stat-value" id="myTasks">0</div>
-                            <div class="stat-label">My Tasks</div>
+                            <div style="font-size: 11px; color: #94a3b8; margin-top: 6px;"><i
+                                    class="fa-solid fa-list-check" style="color:#8b5cf6; margin-right:4px;"></i> Current
+                                assignments</div>
                         </div>
                         <div class="stat-icon-box bg-purple">
                             <i class="fa-solid fa-list-check"></i>
@@ -107,21 +151,30 @@
                     </div>
 
                     <!-- Completed -->
-                    <div class="stat-card-modern">
+                    <div class="stat-card-modern accent-green">
                         <div class="stat-content">
+                            <div class="stat-label"
+                                style="margin-bottom: 6px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: #64748b; font-weight: 700;">
+                                Completed</div>
                             <div class="stat-value" id="myCompleted">0</div>
-                            <div class="stat-label">Completed</div>
+                            <div style="font-size: 11px; color: #94a3b8; margin-top: 6px;"><i
+                                    class="fa-regular fa-circle-check" style="color:#22c55e; margin-right:4px;"></i>
+                                Tasks finished</div>
                         </div>
                         <div class="stat-icon-box bg-green">
                             <i class="fa-regular fa-circle-check"></i>
                         </div>
                     </div>
 
-                    <!-- Team Size (Contextual) -->
-                    <div class="stat-card-modern">
+                    <!-- Team Size -->
+                    <div class="stat-card-modern accent-orange">
                         <div class="stat-content">
+                            <div class="stat-label"
+                                style="margin-bottom: 6px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: #64748b; font-weight: 700;">
+                                Team Space</div>
                             <div class="stat-value" id="teamSize">0</div>
-                            <div class="stat-label">Team Members</div>
+                            <div style="font-size: 11px; color: #94a3b8; margin-top: 6px;"><i class="fa-solid fa-users"
+                                    style="color:#f97316; margin-right:4px;"></i> Active collaborate</div>
                         </div>
                         <div class="stat-icon-box bg-orange">
                             <i class="fa-solid fa-users"></i>
@@ -135,8 +188,9 @@
                     <div class="card-box">
                         <div class="card-header-clean">
                             <h3>Project Stats</h3>
-                            <select class="select-sm">
-                                <option>This Week</option>
+                            <select class="select-sm" id="projectStatsFilter">
+                                <option value="week">This Week</option>
+                                <option value="month">This Month</option>
                             </select>
                         </div>
                         <div style="height: 250px; position: relative;">
@@ -148,8 +202,9 @@
                     <div class="card-box">
                         <div class="card-header-clean">
                             <h3>Performance</h3>
-                            <select class="select-sm">
-                                <option>This Week</option>
+                            <select class="select-sm" id="performanceFilter">
+                                <option value="week">This Week</option>
+                                <option value="month">This Month</option>
                             </select>
                         </div>
                         <div style="height: 250px; position: relative;">
@@ -169,6 +224,9 @@
                         <div class="timeline-feed" id="activity-list">
                             <p>Loading activity...</p>
                         </div>
+                        <button id="viewMoreActivityBtn" class="btn-text">
+                            View More <i class="fa-solid fa-chevron-down"></i>
+                        </button>
                     </div>
 
                     <!-- Upcoming Deadlines -->
@@ -180,6 +238,9 @@
                         <div class="timeline-feed" id="deadline-list">
                             <p>Loading deadlines...</p>
                         </div>
+                        <button id="viewMoreDeadlinesBtn" class="btn-text">
+                            View More <i class="fa-solid fa-chevron-down"></i>
+                        </button>
                     </div>
                 </div>
 
@@ -192,3 +253,6 @@
     <script src="app.js"></script>
     <script src="dashboard-common.js"></script>
     <script src="member-dashboard.js"></script>
+</body>
+
+</html>

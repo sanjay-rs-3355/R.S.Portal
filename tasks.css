@@ -1,35 +1,127 @@
 /* ================= TASKS STYLES ================= */
 
-.task-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-top: 15px;
+.tasks-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 24px;
+    margin-top: 20px;
 }
 
 .task-item {
-    background: #f8fafc;
-    padding: 15px;
-    border-radius: 8px;
-    border-left: 4px solid #cbd5e1;
+    background: #ffffff;
+    padding: 24px;
+    border-radius: var(--radius-lg);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-top: 6px solid #cbd5e1;
+    border-left: none;
     display: flex;
+    flex-direction: column;
     justify-content: space-between;
-    align-items: center;
+    gap: 16px;
+    transition: var(--transition-smooth);
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    overflow: hidden;
+    min-height: 220px;
+}
+
+.task-item:hover {
+    background: white;
+    box-shadow: var(--shadow-vibrant);
+    border-color: var(--primary-color);
+    transform: translateY(-5px) scale(1.02);
 }
 
 .task-item.priority-high {
-    border-left-color: #ef4444;
+    border-top-color: #f43f5e;
+    background: linear-gradient(180deg, rgba(244, 63, 94, 0.08) 0%, transparent 40%), #ffffff;
 }
 
 .task-item.priority-medium {
-    border-left-color: #f59e0b;
+    border-top-color: #f59e0b;
+    background: linear-gradient(180deg, rgba(245, 158, 11, 0.08) 0%, transparent 40%), #ffffff;
 }
 
 .task-item.priority-low {
-    border-left-color: #10b981;
+    border-top-color: #10b981;
+    background: linear-gradient(180deg, rgba(16, 185, 129, 0.08) 0%, transparent 40%), #ffffff;
 }
+
+/* Faded complete tasks */
+.task-item.completed {
+    opacity: 0.6;
+    filter: grayscale(0.5);
+}
+
 
 .task-actions {
     display: flex;
     gap: 10px;
+}
+
+/* Status Badges */
+.badge-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 30px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badge-status.pending {
+    background: rgba(148, 163, 184, 0.1);
+    color: #64748b;
+}
+
+.badge-status.in_progress {
+    background: rgba(99, 102, 241, 0.1);
+    color: #6366f1;
+}
+
+.badge-status.review {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.badge-status.completed {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+.status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+/* Priority Badges in Tasks */
+.badge-priority {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 30px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.badge-priority.high {
+    background: rgba(244, 63, 94, 0.1);
+    color: #f43f5e;
+}
+
+.badge-priority.medium {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.badge-priority.low {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
 }

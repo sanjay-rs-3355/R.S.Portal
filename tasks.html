@@ -11,9 +11,11 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="dashboard.css">
     <link rel="stylesheet" href="tasks.css">
+    <link rel="stylesheet" href="tasks-filters.css">
     <link rel="stylesheet" href="users.css">
     <link rel="stylesheet" href="chat.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
 </head>
 
 <body>
@@ -27,26 +29,24 @@
                 <span>R.S.Portal</span>
             </div>
             <ul class="nav">
-                <li onclick="goToDashboard()">
+                <li id="navDashboard">
                     <i class="fa-solid fa-border-all"></i> &nbsp; Dashboard
                 </li>
 
-                <li onclick="window.location.href='project.html'">
+                <li id="navProjects">
                     <i class="fa-regular fa-folder"></i> &nbsp; Projects
                 </li>
 
-                <li class="active" onclick="window.location.href='tasks.html'">
+                <li id="navTasks" style="display:none;">
                     <i class="fa-regular fa-circle-check"></i> &nbsp; Tasks
                 </li>
-
-                <li id="admin-users-link" style="display:none;" onclick="window.location.href='users.html'">
+                <li id="navUsers" style="display:none;">
                     <i class="fa-solid fa-users"></i> &nbsp; Users
                 </li>
+                <li id="navDbManager" style="display:none;">
+                    <i class="fa-solid fa-database"></i> &nbsp; DB Manager
+                </li>
             </ul>
-            <div class="bottom-menu">
-                <div onclick="logout()" style="cursor: pointer;"><i class="fa-solid fa-arrow-right-from-bracket"></i>
-                    &nbsp; Log Out</div>
-            </div>
         </div>
 
         <!-- Main Content -->
@@ -55,69 +55,144 @@
             <div class="topbar">
                 <div class="top-left">
                     <div class="breadcrumb">Pages / <span class="crumb-active">Tasks</span></div>
-                    <div class="page-subtitle">Manage your tasks</div>
+                    <div class="page-subtitle">Personal Task Tracker</div>
                 </div>
                 <div class="top-right">
                     <div class="search-wrapper">
                         <i class="fa-solid fa-magnifying-glass search-icon"></i>
                         <input type="text" class="search" placeholder="Search tasks...">
                     </div>
-                    <div class="notification">
+                    <div class="notification" id="notifBtn" style="cursor: pointer; position: relative;">
                         <i class="fa-regular fa-bell"></i>
-                        <span class="notif-dot"></span>
+                        <span class="notif-dot" id="notifDot" style="display: none;"></span>
+                        <!-- Notification Dropdown -->
+                        <div class="notif-dropdown" id="notifDropdown">
+                            <div class="notif-header">
+                                <span>Notifications</span>
+                                <button id="markAllRead" class="btn-text-sm">Clear All</button>
+                            </div>
+                            <div class="notif-list" id="notifList">
+                                <p class="notif-empty">No new notifications</p>
+                            </div>
+                        </div>
                     </div>
-                    <div class="user">
-                        <div class="user-avatar" id="user-avatar">U</div>
+                    <div class="topbar-divider"></div>
+                    <div class="user" id="userMenuBtn" style="cursor: pointer; position: relative;">
+                        <div class="user-avatar" id="user-avatar"></div>
+                        <span id="usernameDisplay"
+                            style="font-weight: 600; color: var(--text-color); margin-right: 4px;">User</span>
                         <span class="arrow"><i class="fa-solid fa-chevron-down"></i></span>
+                        <!-- User Dropdown -->
+                        <div class="user-dropdown" id="userDropdown">
+                            <div class="dropdown-item" onclick="window.location.href='profile.html'">
+                                <i class="fa-regular fa-user"></i> My Profile
+                            </div>
+                            <div class="dropdown-item" onclick="logout()">
+                                <i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Page Content -->
             <div class="dashboard-area">
-                <h2 class="page-title">My Tasks</h2>
-                <div class="card-box">
-                    <table class="data-table" id="tasks-table">
-                        <thead>
-                            <tr>
-                                <th>Task</th>
-                                <th>Project</th>
-                                <th>Priority</th>
-                                <th>Status</th>
-                                <th>Deadline</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
+                <!-- WELCOME BANNER -->
+                <div class="dash-welcome-banner" style="margin-bottom: 35px;">
+                    <div>
+                        <h2 class="dash-welcome-title">My Tasks</h2>
+                        <p class="dash-welcome-sub">Productivity hub for your assignments — keep moving forward.</p>
+                    </div>
+                    <div class="dash-welcome-date" id="dash-date"></div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; margin-bottom: 30px;">
+                    <div class="stat-card-modern">
+                        <div class="stat-content">
+                            <div class="stat-value" id="count-pending">0</div>
+                            <div class="stat-label">Pending Tasks</div>
+                        </div>
+                        <div class="stat-icon-box bg-purple">
+                            <i class="fa-solid fa-clock-rotate-left"></i>
+                        </div>
+                    </div>
+                    <div class="stat-card-modern">
+                        <div class="stat-content">
+                            <div class="stat-value" id="count-completed">0</div>
+                            <div class="stat-label">Completed Tasks</div>
+                        </div>
+                        <div class="stat-icon-box bg-green">
+                            <i class="fa-solid fa-circle-check"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; margin-bottom: 25px;">
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;" id="taskFilters">
+                        <button class="filter-pill active" onclick="filterTasks('all', this)" data-filter="all">All
+                            Tasks</button>
+                        <button class="filter-pill" onclick="filterTasks('pending', this)"
+                            data-filter="pending">Pending</button>
+                        <button class="filter-pill" onclick="filterTasks('in_progress', this)"
+                            data-filter="in_progress">In Progress</button>
+                        <button class="filter-pill" onclick="filterTasks('review', this)" data-filter="review">In
+                            Review</button>
+                        <button class="filter-pill" onclick="filterTasks('completed', this)"
+                            data-filter="completed">Completed</button>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <label for="taskSort" style="color: #64748b; font-size: 14px; font-weight: 500;">Sort
+                            By:</label>
+                        <select id="taskSort" onchange="sortTasks()"
+                            style="padding: 10px 16px; border-radius: 12px; border: 1px solid rgba(99, 102, 241, 0.2); background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); outline: none; transition: all 0.2s; color: #1e293b; font-weight: 500; cursor: pointer; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+                            <option value="deadline_asc">Deadline (Earliest)</option>
+                            <option value="deadline_desc">Deadline (Latest)</option>
+                            <option value="priority_desc">Priority (High to Low)</option>
+                            <option value="title_asc">Title (A-Z)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="tasks-container" id="tasks-container">
+                    <!-- Tasks will be injected here as cards -->
                 </div>
             </div>
 
             <!-- MODALS -->
             <div id="taskDetailsModal" class="modal">
-                <div class="modal-content" style="width: 500px;">
+                <div class="modal-content" style="max-width: 600px;">
                     <span class="close" onclick="closeModal('taskDetailsModal')">&times;</span>
+
+                    <span class="modal-section-title">Task Overview</span>
                     <h2 id="modalTaskTitle">Task Title</h2>
-                    <div style="margin-bottom: 20px;">
-                        <span id="modalTaskProject" class="badge member">Project Name</span>
-                        <span id="modalTaskPriority" class="badge">Priority</span>
-                        <span id="modalTaskDeadline" style="margin-left: 10px; font-size: 13px; color: #64748b;"></span>
+
+                    <div style="display: flex; gap: 12px; margin: 20px 0;">
+                        <span id="modalTaskProject" class="project-tag"
+                            style="font-size: 13px; padding: 6px 14px;">Project Name</span>
+                        <span id="modalTaskPriority" class="badge-priority">Priority</span>
+                        <span id="modalTaskDeadline" class="deadline-cell"
+                            style="background: #f1f5f9; padding: 4px 12px; border-radius: 20px;"></span>
                     </div>
 
-                    <p id="modalTaskDesc" style="color: #475569; line-height: 1.6; margin-bottom: 20px;">No description
+                    <span class="modal-section-title" style="margin-top: 30px;">Description</span>
+                    <p id="modalTaskDesc"
+                        style="color: #475569; line-height: 1.6; margin-bottom: 35px; font-size: 15px;">No description
                         provided.</p>
 
-                    <div style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                        <label
-                            style="display: block; font-size: 13px; font-weight: 600; color: #64748b; margin-bottom: 8px;">Update
-                            Status:</label>
-                        <select id="modalTaskStatus"
-                            style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1;">
-                            <option value="pending">Pending</option>
-                            <option value="in_progress">In Progress</option>
-                            <option value="completed">Completed</option>
-                        </select>
-                        <button class="btn-primary" style="width: 100%; margin-top: 15px;"
-                            onclick="saveTaskStatus()">Update Status</button>
+                    <div
+                        style="background: #f8fafc; padding: 25px; border-radius: 20px; border: 1px solid #e2e8f0; display: flex; align-items: flex-end; gap: 20px;">
+                        <div style="flex: 1;">
+                            <label class="modal-section-title">Update Status</label>
+                            <select id="modalTaskStatus"
+                                style="width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #cbd5e1; background: white; outline: none; transition: border 0.2s;">
+                                <option value="pending">Pending</option>
+                                <option value="in_progress">In Progress</option>
+                                <option value="review">In Review</option>
+                                <option value="completed">Completed</option>
+                            </select>
+                        </div>
+                        <button class="btn-primary" style="height: 48px; padding: 0 30px;"
+                            onclick="saveTaskStatus()">Save Changes</button>
                     </div>
                 </div>
             </div>
@@ -126,179 +201,7 @@
     </div>
 
     <script src="app.js"></script>
-    <script>
-        const token = localStorage.getItem("token");
-        if (!token) window.location.href = "index.html";
-
-        // Handle Back Button (bfcache)
-        window.addEventListener('pageshow', function (event) {
-            if (!localStorage.getItem("token")) {
-                window.location.href = "index.html";
-            }
-        });
-
-        let userTasks = []; // Global store
-
-        async function initPage() {
-            try {
-                // Determine role for sidebar link
-                const user = parseJwt(token);
-                if (user && user.role === 'admin') {
-                    document.getElementById('admin-users-link').style.display = 'block';
-                }
-
-                // Set username/avatar
-                if (user && user.name) {
-                    document.getElementById("user-avatar").innerText = user.name.charAt(0).toUpperCase();
-                } else {
-                    document.getElementById("user-avatar").innerText = "U";
-                }
-
-                // Sidebar navigation helpers
-                document.querySelector('.logo')?.addEventListener('click', () => window.location.href = 'index.html');
-
-                fetchUserTasks();
-
-            } catch (error) {
-                console.error(error);
-                logout();
-            }
-        }
-
-        async function fetchUserTasks() {
-            try {
-                // ADMIN ACCESS: Fetch ALL tasks
-                const user = parseJwt(token);
-                const endpoint = (user && user.role === 'admin')
-                    ? "http://localhost:5000/api/tasks"
-                    : "http://localhost:5000/api/dashboard/tasks";
-
-                const res = await fetch(endpoint, {
-                    headers: { "Authorization": "Bearer " + token }
-                });
-                const tasks = await res.json();
-                userTasks = tasks; // Store globally
-
-                const tbody = document.querySelector("#tasks-table tbody");
-                tbody.innerHTML = "";
-
-                if (tasks.length === 0) {
-                    tbody.innerHTML = "<tr><td colspan='5'>No tasks assigned.</td></tr>";
-                    return;
-                }
-
-                tasks.forEach(t => {
-                    const deadline = t.deadline ? new Date(t.deadline).toLocaleDateString() : 'No deadline';
-                    let priorityColor = '#10b981'; // green (low)
-                    if (t.priority === 'medium') priorityColor = '#f59e0b'; // orange
-                    if (t.priority === 'high') priorityColor = '#ef4444'; // red
-
-                    let statusBadge = 'member';
-                    if (t.status === 'completed') statusBadge = 'admin';
-
-                    const taskId = t._id || t.id;
-
-                    tbody.innerHTML += `
-                        <tr onclick="openTaskDetails('${taskId}')" style="cursor: pointer;">
-                            <td><div style="font-weight:600;">${t.title}</div></td>
-                            <td>${t.projectTitle}</td>
-                            <td><span style="color:${priorityColor}; font-weight:600; text-transform:capitalize;">${t.priority}</span></td>
-                            <td><span class="badge ${statusBadge}">${t.status.replace('_', ' ')}</span></td>
-                            <td>${deadline}</td>
-                        </tr>
-                    `;
-                });
-
-            } catch (e) {
-                console.error(e);
-                showToast("Failed to load tasks", "error");
-            }
-        }
-
-        let currentTaskId = null;
-
-        function openTaskDetails(id) {
-            const task = userTasks.find(t => (t._id || t.id) == id);
-            if (!task) return;
-
-            currentTaskId = id;
-            document.getElementById("modalTaskTitle").innerText = task.title;
-            document.getElementById("modalTaskDesc").innerText = task.description || "No description provided.";
-            document.getElementById("modalTaskProject").innerText = task.projectTitle || "Unknown Project";
-
-            const priorityBadge = document.getElementById("modalTaskPriority");
-            priorityBadge.innerText = task.priority;
-            priorityBadge.className = `badge ${task.priority ? task.priority.toLowerCase() : 'medium'}`;
-            priorityBadge.style.color = 'inherit';
-
-            const deadlineText = task.deadline ? new Date(task.deadline).toLocaleDateString() : 'No Deadline';
-            document.getElementById("modalTaskDeadline").innerText = `Due: ${deadlineText}`;
-
-            document.getElementById("modalTaskStatus").value = task.status;
-
-            document.getElementById("taskDetailsModal").style.display = "flex";
-        }
-
-        async function saveTaskStatus() {
-            const newStatus = document.getElementById("modalTaskStatus").value;
-            try {
-                const res = await fetch(`http://localhost:5000/api/tasks/${currentTaskId}/status`, {
-                    method: "PUT",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": "Bearer " + token
-                    },
-                    body: JSON.stringify({ status: newStatus })
-                });
-
-                if (res.ok) {
-                    showToast(`Task marked as ${newStatus.replace('_', ' ')}`);
-                    closeModal('taskDetailsModal');
-                    fetchUserTasks(); // Refresh list
-                } else {
-                    showToast("Failed to update status", "error");
-                }
-            } catch (e) { console.error(e); showToast("Server error", "error"); }
-        }
-
-        function closeModal(modalId) {
-            document.getElementById(modalId).style.display = "none";
-        }
-
-        function showToast(message, type = 'success') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            toast.innerHTML = `<div class="toast-content">${message}</div>`;
-            container.appendChild(toast);
-            setTimeout(() => {
-                toast.style.animation = 'fadeOut 0.3s forwards';
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        }
-
-        function goToDashboard() {
-            const user = parseJwt(token);
-            if (user) {
-                window.location.href = user.role === 'admin' ? 'admin-dashboard.html' : 'member-dashboard.html';
-            } else {
-                window.location.href = 'index.html';
-            }
-        }
-
-        window.onclick = function (event) {
-            if (event.target.classList.contains('modal')) {
-                event.target.style.display = "none";
-            }
-        }
-
-        function logout() {
-            localStorage.clear();
-            window.location.href = "index.html";
-        }
-
-        initPage();
-    </script>
+    <script src="tasks.js"></script>
 </body>
 
 </html>
