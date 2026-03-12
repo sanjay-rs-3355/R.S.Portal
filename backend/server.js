@@ -65,8 +65,12 @@ app.use((err, req, res, next) => {
 });
 
 // 5. Start Server
-server.listen(5000, () => {
-    console.log('Server running on port 5000');
-    console.log('Access the portal at: http://localhost:5000');
+const PORT = process.env.PORT || 5000;
+server.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+    if (process.env.NODE_ENV !== 'production') {
+        console.log(`Access the portal at: http://localhost:${PORT}`);
+    }
 });
+
 

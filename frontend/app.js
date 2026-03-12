@@ -1,4 +1,7 @@
-const API_BASE_URL = ""; // Make relative for consistency and to avoid CORS issues
+// Set this to your Render backend URL when deploying frontend on Vercel
+// Example: const API_BASE_URL = "https://your-app.onrender.com";
+const API_BASE_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" ? "" : ""; 
+
 
 // Global error handler for debugging
 window.onerror = function (msg, url, line, col, error) {

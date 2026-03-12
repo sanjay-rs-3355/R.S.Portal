@@ -1,7 +1,22 @@
 {
+  "name": "web-collab-portal",
+  "version": "1.0.0",
+  "description": "Collaborative portal for web development projects",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "install-backend": "cd backend && npm install",
+    "build": "npm run install-backend"
+  },
   "dependencies": {
     "bcrypt": "^6.0.0",
     "dotenv": "^17.2.4",
-    "jsonwebtoken": "^9.0.3"
+    "express": "^4.22.1",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.3",
+    "multer": "^2.1.1",
+    "mysql2": "^3.16.3",
+    "socket.io": "^4.8.3",
+    "socket.io-client": "^4.8.3"
   }
 }
