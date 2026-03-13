@@ -231,6 +231,21 @@ async function seedDatabase() {
     console.log('\n🌱 Starting database seed...\n');
 
     try {
+        // ─── 0. ENSURE COLUMNS EXIST (fix for older deployments) ─
+        try {
+            await db.query("ALTER TABLE users ADD COLUMN designation VARCHAR(100) DEFAULT 'Member'");
+            console.log('   ✅ designation column added to users table.');
+        } catch (e) {
+            // Column already exists — that's fine
+        }
+        try {
+            await db.query("ALTER TABLE projects ADD COLUMN last_activity_text VARCHAR(255) NULL");
+            await db.query("ALTER TABLE projects ADD COLUMN last_activity_type ENUM('task','message','member','file','meeting','snippet','general') NULL");
+            await db.query("ALTER TABLE projects ADD COLUMN last_activity_at TIMESTAMP NULL");
+        } catch (e) {
+            // Columns already exist — that's fine
+        }
+
         const [existingUsers] = await db.query('SELECT COUNT(*) as count FROM users');
         if (existingUsers[0].count >= 10) {
             console.log('✅ Database already seeded. Skipping.');
