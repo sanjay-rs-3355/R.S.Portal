@@ -5,6 +5,8 @@ const path = require('path');
 const { Server } = require('socket.io');
 const helmet = require('helmet');
 const fs = require('fs');
+const runMigration = require('./utils/migrate');
+
 
 const app = express();
 
@@ -66,8 +68,12 @@ app.use((err, req, res, next) => {
 
 // 5. Start Server
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => {
+server.listen(PORT, async () => {
     console.log(`Server running on port ${PORT}`);
+    
+    // Auto-run database migration
+    await runMigration();
+
     if (process.env.NODE_ENV !== 'production') {
         console.log(`Access the portal at: http://localhost:${PORT}`);
     }
