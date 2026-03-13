@@ -1,14 +1,5 @@
-USE collaboration_portal;
-SHOW TABLES;
-UPDATE users 
-SET role = 'admin' 
-WHERE email = 'sanjay@gmail.com';
-select * from users;
-CREATE DATABASE collaboration_portal;
-USE collaboration_portal;
-
 -- USERS TABLE
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     email VARCHAR(150) NOT NULL UNIQUE,
@@ -22,7 +13,7 @@ CREATE TABLE users (
 );
 
 -- PROJECTS TABLE
-CREATE TABLE projects (
+CREATE TABLE IF NOT EXISTS projects (
     id INT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(150) NOT NULL,
     description TEXT,
@@ -35,7 +26,7 @@ CREATE TABLE projects (
 );
 
 -- PROJECT_MEMBERS TABLE
-CREATE TABLE project_members (
+CREATE TABLE IF NOT EXISTS project_members (
     id INT AUTO_INCREMENT PRIMARY KEY,
     project_id INT NOT NULL,
     user_id INT NOT NULL,
@@ -48,7 +39,7 @@ CREATE TABLE project_members (
 );
 
 -- TASKS TABLE
-CREATE TABLE tasks (
+CREATE TABLE IF NOT EXISTS tasks (
     id INT AUTO_INCREMENT PRIMARY KEY,
     project_id INT NOT NULL,
     title VARCHAR(150) NOT NULL,
@@ -66,7 +57,7 @@ CREATE TABLE tasks (
 );
 
 -- MESSAGES TABLE
-CREATE TABLE messages (
+CREATE TABLE IF NOT EXISTS messages (
     id INT AUTO_INCREMENT PRIMARY KEY,
     project_id INT NOT NULL,
     sender_id INT NULL,
@@ -78,7 +69,7 @@ CREATE TABLE messages (
     ON DELETE SET NULL
 );
 
-CREATE TABLE activity_logs (
+CREATE TABLE IF NOT EXISTS activity_logs (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT,
     project_id INT NULL,
@@ -87,7 +78,8 @@ CREATE TABLE activity_logs (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
     FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE SET NULL
 );
-CREATE TABLE task_comments (
+
+CREATE TABLE IF NOT EXISTS task_comments (
     id INT AUTO_INCREMENT PRIMARY KEY,
     task_id INT NOT NULL,
     user_id INT,
@@ -96,7 +88,8 @@ CREATE TABLE task_comments (
     FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 );
-CREATE TABLE project_invitations (
+
+CREATE TABLE IF NOT EXISTS project_invitations (
     id INT AUTO_INCREMENT PRIMARY KEY,
     project_id INT NOT NULL,
     invited_by INT NOT NULL,
@@ -106,7 +99,8 @@ CREATE TABLE project_invitations (
     FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
     FOREIGN KEY (invited_by) REFERENCES users(id) ON DELETE CASCADE
 );
-CREATE TABLE attachments (
+
+CREATE TABLE IF NOT EXISTS attachments (
     id INT AUTO_INCREMENT PRIMARY KEY,
     project_id INT NULL,
     task_id INT NULL,
@@ -118,7 +112,8 @@ CREATE TABLE attachments (
     FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE,
     FOREIGN KEY (uploaded_by) REFERENCES users(id) ON DELETE SET NULL
 );
-CREATE TABLE notifications (
+
+CREATE TABLE IF NOT EXISTS notifications (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
     message VARCHAR(255),
@@ -126,7 +121,8 @@ CREATE TABLE notifications (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
-CREATE TABLE task_status_history (
+
+CREATE TABLE IF NOT EXISTS task_status_history (
     id INT AUTO_INCREMENT PRIMARY KEY,
     task_id INT NOT NULL,
     old_status ENUM('pending','in_progress','completed'),
@@ -137,4 +133,5 @@ CREATE TABLE task_status_history (
     FOREIGN KEY (changed_by) REFERENCES users(id) ON DELETE SET NULL
 );
 
-DESCRIBE messages;
+-- Final updates
+UPDATE users SET role = 'admin' WHERE email = 'sanjay@gmail.com';

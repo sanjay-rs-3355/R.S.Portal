@@ -21,39 +21,38 @@ async function runMigration() {
             .map(s => s.trim())
             .filter(s => s.length > 0 && !s.startsWith('--'));
 
+        console.log(`🚀 Starting migration from: ${schemaPath}`);
         console.log(`Found ${statements.length} SQL statements to execute.`);
 
         const connection = await db.getConnection();
         try {
-            // Disable foreign key checks during migration on this specific connection
             await connection.query('SET FOREIGN_KEY_CHECKS = 0');
+            console.log('🔹 Foreign key checks disabled.');
 
-            for (let statement of statements) {
-                // Clean up database-specific commands that might fail on Aiven's defaultdb
-                if (statement.toUpperCase().startsWith('USE ') || 
-                    statement.toUpperCase().startsWith('CREATE DATABASE ')) {
-                    continue;
-                }
-
+            for (let i = 0; i < statements.length; i++) {
+                const statement = statements[i];
+                const preview = statement.substring(0, 50).replace(/\n/g, ' ') + '...';
+                
                 try {
                     await connection.query(statement);
+                    console.log(`  ✅ [${i+1}/${statements.length}] Executed: ${preview}`);
                 } catch (err) {
-                    // If table already exists, we skip it
                     if (err.code === 'ER_TABLE_EXISTS_ERROR') {
+                        console.log(`  ℹ️ [${i+1}/${statements.length}] Table already exists, skipping.`);
                         continue;
                     }
-                    console.warn(`⚠️ Warning executing statement: ${statement.substring(0, 50)}...`);
-                    console.warn(`Error: ${err.message}`);
+                    console.warn(`  ⚠️ [${i+1}/${statements.length}] Warning: ${preview}`);
+                    console.warn(`     Error: ${err.message}`);
                 }
             }
 
-            // Re-enable foreign key checks
             await connection.query('SET FOREIGN_KEY_CHECKS = 1');
+            console.log('🔹 Foreign key checks re-enabled.');
         } finally {
             connection.release();
         }
 
-        console.log('✅ Migration completed successfully!');
+        console.log('✅ Migration process finished.');
     } catch (error) {
         console.error('❌ Migration failed:', error);
     }
