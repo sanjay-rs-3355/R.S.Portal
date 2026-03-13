@@ -43,8 +43,8 @@ async function runMigration() {
                     await connection.query(statement);
                     console.log('  OK [' + (i+1) + '/' + statements.length + '] Executed: ' + preview);
                 } catch (err) {
-                    if (err.code === 'ER_TABLE_EXISTS_ERROR') {
-                        console.log('  SKIP [' + (i+1) + '/' + statements.length + '] Table already exists.');
+                    if (err.code === 'ER_TABLE_EXISTS_ERROR' || err.code === 'ER_DUP_FIELDNAME') {
+                        console.log('  SKIP [' + (i+1) + '/' + statements.length + '] Already exists, skipping.');
                         continue;
                     }
                     console.warn('  WARN [' + (i+1) + '/' + statements.length + ']: ' + preview);

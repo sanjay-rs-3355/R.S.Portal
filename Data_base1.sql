@@ -1,4 +1,3 @@
--- USERS TABLE
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
@@ -13,9 +12,8 @@ CREATE TABLE IF NOT EXISTS users (
     designation VARCHAR(100) DEFAULT 'Member'
 );
 
-ALTER TABLE users ADD COLUMN IF NOT EXISTS designation VARCHAR(100) DEFAULT 'Member';
+ALTER TABLE users ADD COLUMN designation VARCHAR(100) DEFAULT 'Member';
 
--- PROJECTS TABLE
 CREATE TABLE IF NOT EXISTS projects (
     id INT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(150) NOT NULL,
@@ -30,11 +28,10 @@ CREATE TABLE IF NOT EXISTS projects (
     FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
 );
 
-ALTER TABLE projects ADD COLUMN IF NOT EXISTS last_activity_text VARCHAR(255) NULL;
-ALTER TABLE projects ADD COLUMN IF NOT EXISTS last_activity_type ENUM('task','message','member','file','meeting','snippet','general') NULL;
-ALTER TABLE projects ADD COLUMN IF NOT EXISTS last_activity_at TIMESTAMP NULL;
+ALTER TABLE projects ADD COLUMN last_activity_text VARCHAR(255) NULL;
+ALTER TABLE projects ADD COLUMN last_activity_type ENUM('task','message','member','file','meeting','snippet','general') NULL;
+ALTER TABLE projects ADD COLUMN last_activity_at TIMESTAMP NULL;
 
--- PROJECT_MEMBERS TABLE
 CREATE TABLE IF NOT EXISTS project_members (
     id INT AUTO_INCREMENT PRIMARY KEY,
     project_id INT NOT NULL,
@@ -45,7 +42,6 @@ CREATE TABLE IF NOT EXISTS project_members (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- TASKS TABLE
 CREATE TABLE IF NOT EXISTS tasks (
     id INT AUTO_INCREMENT PRIMARY KEY,
     project_id INT NOT NULL,
@@ -61,7 +57,6 @@ CREATE TABLE IF NOT EXISTS tasks (
     FOREIGN KEY (assigned_to) REFERENCES users(id) ON DELETE SET NULL
 );
 
--- MESSAGES TABLE
 CREATE TABLE IF NOT EXISTS messages (
     id INT AUTO_INCREMENT PRIMARY KEY,
     project_id INT NOT NULL,
@@ -72,7 +67,6 @@ CREATE TABLE IF NOT EXISTS messages (
     FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
--- ATTACHMENTS TABLE
 CREATE TABLE IF NOT EXISTS attachments (
     id INT AUTO_INCREMENT PRIMARY KEY,
     project_id INT NULL,
@@ -86,7 +80,6 @@ CREATE TABLE IF NOT EXISTS attachments (
     FOREIGN KEY (uploaded_by) REFERENCES users(id) ON DELETE SET NULL
 );
 
--- ATTACHMENT_COMMENTS TABLE
 CREATE TABLE IF NOT EXISTS attachment_comments (
     id INT AUTO_INCREMENT PRIMARY KEY,
     attachment_id INT NOT NULL,
@@ -97,7 +90,6 @@ CREATE TABLE IF NOT EXISTS attachment_comments (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
--- PROJECT_INVITATIONS TABLE
 CREATE TABLE IF NOT EXISTS project_invitations (
     id INT AUTO_INCREMENT PRIMARY KEY,
     project_id INT NOT NULL,
@@ -109,7 +101,6 @@ CREATE TABLE IF NOT EXISTS project_invitations (
     FOREIGN KEY (invited_by) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- NOTIFICATIONS TABLE
 CREATE TABLE IF NOT EXISTS notifications (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -119,7 +110,6 @@ CREATE TABLE IF NOT EXISTS notifications (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- ACTIVITY_LOGS TABLE
 CREATE TABLE IF NOT EXISTS activity_logs (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT,
@@ -130,7 +120,6 @@ CREATE TABLE IF NOT EXISTS activity_logs (
     FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE SET NULL
 );
 
--- TASK_COMMENTS TABLE
 CREATE TABLE IF NOT EXISTS task_comments (
     id INT AUTO_INCREMENT PRIMARY KEY,
     task_id INT NOT NULL,
@@ -141,7 +130,6 @@ CREATE TABLE IF NOT EXISTS task_comments (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
--- TASK_STATUS_HISTORY TABLE
 CREATE TABLE IF NOT EXISTS task_status_history (
     id INT AUTO_INCREMENT PRIMARY KEY,
     task_id INT NOT NULL,
@@ -153,7 +141,6 @@ CREATE TABLE IF NOT EXISTS task_status_history (
     FOREIGN KEY (changed_by) REFERENCES users(id) ON DELETE SET NULL
 );
 
--- MEETINGS TABLE
 CREATE TABLE IF NOT EXISTS meetings (
     id INT AUTO_INCREMENT PRIMARY KEY,
     project_id INT NOT NULL,
@@ -170,7 +157,6 @@ CREATE TABLE IF NOT EXISTS meetings (
     FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
 );
 
--- MEETING_PARTICIPANTS TABLE
 CREATE TABLE IF NOT EXISTS meeting_participants (
     id INT AUTO_INCREMENT PRIMARY KEY,
     meeting_id INT NOT NULL,
@@ -180,7 +166,6 @@ CREATE TABLE IF NOT EXISTS meeting_participants (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- CODE_SNIPPETS TABLE
 CREATE TABLE IF NOT EXISTS code_snippets (
     id INT AUTO_INCREMENT PRIMARY KEY,
     project_id INT NOT NULL,
@@ -195,5 +180,4 @@ CREATE TABLE IF NOT EXISTS code_snippets (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
--- Final updates
 UPDATE users SET role = 'admin' WHERE email = 'sanjay@gmail.com';
