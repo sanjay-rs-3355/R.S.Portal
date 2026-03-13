@@ -21,7 +21,7 @@ async function runMigration() {
             .map(s => s.trim())
             .filter(s => s.length > 0 && !s.startsWith('--'));
 
-        console.log(`🚀 Starting migration from: ${schemaPath}`);
+        console.log(`🚀 Starting migration from: ${sqlPath}`);
         console.log(`Found ${statements.length} SQL statements to execute.`);
 
         const connection = await db.getConnection();
