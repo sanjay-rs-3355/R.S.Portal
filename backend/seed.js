@@ -1,4 +1,4 @@
-const bcrypt = require('bcryptjs');
+const bcrypt = require('bcrypt');
 const db = require('./config/db');
 
 const NAMED_USERS = [
