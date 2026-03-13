@@ -247,12 +247,12 @@ async function seedDatabase() {
         }
 
         const [existingUsers] = await db.query('SELECT COUNT(*) as count FROM users');
-        if (existingUsers[0].count >= 10) {
+        if (existingUsers[0].count >= 50) {
             console.log('✅ Database already seeded. Skipping.');
             return;
         }
 
-        const password = await bcrypt.hash('password123', 10);
+        const password = await bcrypt.hash('123456', 10);
 
         // ─── 1. INSERT USERS ──────────────────────────────────────
         console.log('👤 Inserting 100 users...');
@@ -261,22 +261,29 @@ async function seedDatabase() {
 
         for (const u of NAMED_USERS) {
             const [result] = await db.query(
-                'INSERT INTO users (name, email, password, role, designation, status) VALUES (?, ?, ?, ?, ?, ?)',
+                `INSERT INTO users (name, email, password, role, designation, status) VALUES (?, ?, ?, ?, ?, ?)
+                 ON DUPLICATE KEY UPDATE password = VALUES(password), designation = VALUES(designation), role = VALUES(role), id = LAST_INSERT_ID(id)`,
                 [u.name, u.email, password, u.role, u.designation, 'active']
             );
-            userIds.push(result.insertId);
-            namedIds[u.email.split('@')[0]] = result.insertId;
+            const id = result.insertId || result.info?.match(/id=(\d+)/)?.[1];
+            // Fetch actual id in case of duplicate
+            const [[row]] = await db.query('SELECT id FROM users WHERE email = ?', [u.email]);
+            userIds.push(row.id);
+            namedIds[u.email.split('@')[0]] = row.id;
         }
 
         for (let i = 0; i < EXTRA_USERS.length; i++) {
             const u = EXTRA_USERS[i];
             const emailName = u.name.toLowerCase().replace(/[^a-z]/g, '').substring(0,10);
             const email = `${emailName}${i + 10}@portal.com`;
-            const [result] = await db.query(
-                'INSERT INTO users (name, email, password, role, designation, status) VALUES (?, ?, ?, ?, ?, ?)',
-                [u.name, email, password, 'member', u.designation, 'active']
-            );
-            userIds.push(result.insertId);
+            try {
+                const [result] = await db.query(
+                    'INSERT IGNORE INTO users (name, email, password, role, designation, status) VALUES (?, ?, ?, ?, ?, ?)',
+                    [u.name, email, password, 'member', u.designation, 'active']
+                );
+                const [[row]] = await db.query('SELECT id FROM users WHERE email = ?', [email]);
+                userIds.push(row.id);
+            } catch (e) { /* skip */ }
         }
         console.log(`   ✅ ${userIds.length} users inserted.`);
 
@@ -486,7 +493,7 @@ async function seedDatabase() {
         console.log('   ✅ Project invitations inserted.');
 
         console.log('\n🎉 Seed complete! 100 users, 10 projects, and all table data inserted.\n');
-        console.log('🔑 All users password: password123');
+        console.log('🔑 All users password: 123456');
         console.log('👑 Admin: sanjay@gmail.com | thilak@gmail.com\n');
 
     } catch (err) {
