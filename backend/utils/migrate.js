@@ -23,6 +23,9 @@ async function runMigration() {
 
         console.log(`Found ${statements.length} SQL statements to execute.`);
 
+        // Disable foreign key checks during migration
+        await db.query('SET FOREIGN_KEY_CHECKS = 0');
+
         for (let statement of statements) {
             // Clean up database-specific commands that might fail on Aiven's defaultdb
             if (statement.toUpperCase().startsWith('USE ') || 
@@ -41,6 +44,9 @@ async function runMigration() {
                 console.warn(`Error: ${err.message}`);
             }
         }
+
+        // Re-enable foreign key checks
+        await db.query('SET FOREIGN_KEY_CHECKS = 1');
 
         console.log('✅ Migration completed successfully!');
     } catch (error) {
