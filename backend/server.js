@@ -6,6 +6,7 @@ const { Server } = require('socket.io');
 const helmet = require('helmet');
 const fs = require('fs');
 const runMigration = require('./utils/migrate');
+const seedDatabase = require('./seed');
 
 
 const app = express();
@@ -73,6 +74,9 @@ server.listen(PORT, async () => {
     
     // Auto-run database migration
     await runMigration();
+
+    // Auto-seed demo data if database is empty
+    await seedDatabase();
 
     if (process.env.NODE_ENV !== 'production') {
         console.log(`Access the portal at: http://localhost:${PORT}`);
