@@ -10,7 +10,7 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "https://your-backend-on-render.onrender.com/api/$1"
+      "dest": "https://collab-portal-backend.onrender.com/api/$1"
     },
     {
       "handle": "filesystem"
