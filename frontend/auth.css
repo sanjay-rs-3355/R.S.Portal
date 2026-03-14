@@ -228,34 +228,38 @@
     background-image: url('https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1951&q=80');
     background-size: cover;
     background-position: center;
-    height: 100vh;
+    background-attachment: fixed;
+    min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 20px;
 }
 
 .register-body .glass-card {
-    /* Specific to register page only */
     width: 900px;
-    max-width: 95%;
+    max-width: 100%;
     display: flex;
     justify-content: space-between;
     align-items: center;
     background: rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 30px;
     padding: 50px;
-    box-shadow: 0 25px 45px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 25px 45px rgba(0, 0, 0, 0.2), inset 0 0 0 1px rgba(255, 255, 255, 0.1);
     position: relative;
     overflow: hidden;
+    animation: scaleIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .glass-left {
     flex: 1;
     padding-right: 40px;
     color: #333;
+    display: flex;
+    flex-direction: column;
 }
 
 .glass-logo {
@@ -288,10 +292,19 @@
 
 /* Form Styles Override for Glass */
 .glass-input {
-    background: rgba(255, 255, 255, 0.8) !important;
-    border: none;
+    background: rgba(255, 255, 255, 0.9) !important;
+    border: 2px solid transparent !important;
     margin-bottom: 15px;
     color: #333;
+    transition: all 0.3s ease;
+    border-radius: 12px;
+}
+
+.glass-input:focus {
+    background: #ffffff !important;
+    border-color: #6366f1 !important;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+    transform: translateY(-1px);
 }
 
 .glass-input::placeholder {
@@ -299,22 +312,33 @@
 }
 
 .glass-label {
-    color: #333 !important;
-    font-size: 14px;
-    margin-bottom: 5px;
-    font-weight: 600;
+    color: #1e293b !important;
+    font-size: 13.5px;
+    margin-bottom: 6px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
 }
 
 .glass-btn {
     width: 100%;
     margin-top: 20px;
-    background: #a5b4fc !important;
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
     color: white;
     font-weight: 700;
+    border: none;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.4);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .glass-btn:hover {
-    background: #818cf8 !important;
+    transform: translateY(-3px);
+    box-shadow: 0 15px 25px -5px rgba(99, 102, 241, 0.5);
+    filter: brightness(1.05);
+}
+
+.glass-btn:active {
+    transform: translateY(-1px) scale(0.98);
 }
 
 /* Avatar Selection */
@@ -354,24 +378,32 @@
 
 .avatar-options {
     display: flex;
-    gap: 10px;
+    gap: 12px;
     justify-content: center;
     margin-top: 20px;
 }
 
 .avatar-option {
-    width: 40px;
-    height: 40px;
+    width: 45px;
+    height: 45px;
     border-radius: 50%;
     cursor: pointer;
     border: 2px solid transparent;
-    transition: 0.2s;
+    background: rgba(255, 255, 255, 0.5);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.avatar-option:hover,
+.avatar-option:hover {
+    transform: scale(1.15) translateY(-2px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    background: rgba(255, 255, 255, 0.9);
+}
+
 .avatar-option.selected {
-    transform: scale(1.1);
-    border-color: #4f46e5;
+    transform: scale(1.2);
+    border-color: #6366f1;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2), 0 10px 20px rgba(0, 0, 0, 0.15);
 }
 
 .or-divider {
@@ -391,4 +423,24 @@
     width: 30px;
     background: #333;
     opacity: 0.3;
+}
+
+@media (max-width: 900px) {
+    .register-body .glass-card {
+        flex-direction: column;
+        padding: 30px;
+        border-radius: 20px;
+        gap: 30px;
+    }
+
+    .glass-left {
+        padding-right: 0;
+        width: 100%;
+        border-bottom: 1px solid rgba(0,0,0,0.1);
+        padding-bottom: 30px;
+    }
+
+    .glass-right {
+        width: 100%;
+    }
 }
