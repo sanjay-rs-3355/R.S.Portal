@@ -38,7 +38,6 @@
             overflow: hidden;
             box-shadow: 0 20px 40px rgba(15, 23, 42, 0.25);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            animation: slideInLeft 0.6s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .profile-card-premium::before {
@@ -143,7 +142,6 @@
             padding: 40px;
             border: 1px solid var(--glass-border);
             box-shadow: var(--card-shadow);
-            animation: slideInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.1s backwards;
         }
 
         .settings-section-title {
@@ -273,30 +271,6 @@
             margin: 40px 0;
         }
 
-        @keyframes slideInLeft {
-            from {
-                opacity: 0;
-                transform: translateX(-40px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        @keyframes slideInUp {
-            from {
-                opacity: 0;
-                transform: translateY(40px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
         /* Stats Badge and Animation */
         .profile-badge-neon {
             background: rgba(255, 255, 255, 0.1);
@@ -399,7 +373,7 @@
 
                 <div class="profile-layout-grid">
                     <!-- LEFT COLUMN: PROFILE CARD -->
-                    <div class="profile-card-premium">
+                    <div class="profile-card-premium reveal">
                         <div class="profile-badge-neon"><i class="fa-solid fa-shield-check"></i> VERIFIED ACCOUNT</div>
                         <div class="avatar-container">
                             <div class="profile-avatar-premium" id="profile-avatar">?</div>
@@ -426,7 +400,7 @@
                     </div>
 
                     <!-- RIGHT COLUMN: SETTINGS FORM -->
-                    <div class="settings-content-premium">
+                    <div class="settings-content-premium reveal">
                         <form id="profileForm">
                             <h3 class="settings-section-title">
                                 <i class="fa-solid fa-user-gear"></i>
