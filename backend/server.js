@@ -10,9 +10,12 @@ const seedDatabase = require('./seed');
 
 
 const app = express();
+const passport = require('passport');
+require('./config/passport')();
 
 // ===== SECURITY =====
 app.use(helmet({ contentSecurityPolicy: false }));
+app.use(passport.initialize());
 
 // ===== BODY PARSER =====
 app.use(express.json({ limit: '50mb' }));

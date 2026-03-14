@@ -48,13 +48,13 @@
                 </div>
 
                 <div class="social-login">
-                    <button class="social-btn" onclick="showToast('Google login coming soon!', 'info')">
+                    <button class="social-btn" onclick="window.location.href = API_BASE_URL + '/api/auth/google'">
                         <img src="https://img.icons8.com/color/48/google-logo.png" alt="Google">
                     </button>
-                    <button class="social-btn" onclick="showToast('GitHub login coming soon!', 'info')">
+                    <button class="social-btn" onclick="window.location.href = API_BASE_URL + '/api/auth/github'">
                         <i class="fa-brands fa-github"></i>
                     </button>
-                    <button class="social-btn" onclick="showToast('Facebook login coming soon!', 'info')">
+                    <button class="social-btn" onclick="window.location.href = API_BASE_URL + '/api/auth/facebook'">
                         <i class="fa-brands fa-facebook-f facebook"></i>
                     </button>
                 </div>
@@ -103,6 +103,38 @@
             }
         });
 
+        // Parse Token to Check Role
+        function parseJwt(token) {
+            try { return JSON.parse(atob(token.split(".")[1])); }
+            catch (e) { return null; }
+        }
+
+        // OAuth Token Handler on Load
+        document.addEventListener("DOMContentLoaded", () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = urlParams.get('token');
+            const error = urlParams.get('error');
+
+            if (token) {
+                localStorage.setItem("token", token);
+                window.history.replaceState({}, document.title, window.location.pathname);
+                showToast("Social Login successful! Redirecting...");
+                
+                setTimeout(() => {
+                    const user = parseJwt(token);
+                    const role = user ? user.role : 'member';
+                    if (role === 'admin') {
+                        window.location.href = "admin-dashboard.html";
+                    } else {
+                        window.location.href = "member-dashboard.html";
+                    }
+                }, 1000);
+            } else if (error) {
+                showToast("Social Login failed or was cancelled.", "error");
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        });
+
         async function login() {
             const email = document.getElementById("email").value;
             const password = document.getElementById("password").value;
@@ -124,11 +156,7 @@
                 if (res.ok && data.token) {
                     localStorage.setItem("token", data.token);
 
-                    // Parse Token to Check Role
-                    function parseJwt(token) {
-                        try { return JSON.parse(atob(token.split(".")[1])); }
-                        catch (e) { return null; }
-                    }
+                    localStorage.setItem("token", data.token);
 
                     const user = parseJwt(data.token);
                     const role = user ? user.role : 'member';
