@@ -1036,7 +1036,8 @@
     flex-direction: column;
     z-index: 1000;
     overflow: hidden;
-    animation: slideDown 0.3s ease-out;
+    transform-origin: top right;
+    animation: fadeInMenu 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .notif-dropdown.active {
@@ -1221,7 +1222,8 @@
     flex-direction: column;
     z-index: 1000;
     padding: 8px 0;
-    animation: fadeIn 0.15s ease-out;
+    transform-origin: top right;
+    animation: fadeInMenu 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .user-dropdown.active {
