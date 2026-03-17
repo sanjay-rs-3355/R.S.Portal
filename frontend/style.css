@@ -112,9 +112,15 @@ button:active {
         gap: 16px !important;
     }
 
-    body, .main, .dashboard-area {
+    body, .dashboard-area {
         overflow-x: hidden;
         width: 100%;
+    }
+
+    .main {
+        overflow-x: hidden;
+        width: 100%;
+        margin-left: 0 !important;
     }
 
     .sidebar {
@@ -281,9 +287,10 @@ textarea,
     flex-direction: column;
     padding: 32px 20px;
     height: 100vh;
-    position: sticky;
+    position: fixed;
     top: 0;
-    z-index: 100;
+    left: 0;
+    z-index: 1000;
 }
 
 .logo {
@@ -413,6 +420,7 @@ textarea,
     display: flex;
     flex-direction: column;
     overflow-y: auto;
+    margin-left: 260px;
 }
 
 /* ══ Topbar – Premium ══ */
