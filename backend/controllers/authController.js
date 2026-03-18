@@ -8,7 +8,8 @@ const logActivity = require('../utils/activityLogger');
 
 // 1️⃣ REGISTER
 exports.register = async (req, res, next) => {
-    const { name, email, password, role, designation } = req.body;
+    const { name, email, password, role, designation, profile_image_url } = req.body;
+    const file = req.file;
 
     try {
         // Check if email already exists
@@ -27,10 +28,18 @@ exports.register = async (req, res, next) => {
         // Default role to 'member' if not specified or invalid
         const userRole = (role === 'admin' || role === 'member' || role === 'manager' || role === 'tester') ? role : 'member';
 
+        // Profile Image Logic
+        let profileImagePath = null;
+        if (file) {
+            profileImagePath = file.filename;
+        } else if (profile_image_url) {
+            profileImagePath = profile_image_url;
+        }
+
         // Insert user
         await db.execute(
-            'INSERT INTO users (name, email, password, role, designation) VALUES (?, ?, ?, ?, ?)',
-            [name, email, hashedPassword, userRole, designation || 'Member']
+            'INSERT INTO users (name, email, password, role, designation, profile_image) VALUES (?, ?, ?, ?, ?, ?)',
+            [name, email, hashedPassword, userRole, designation || 'Member', profileImagePath]
         );
 
         res.status(201).json({ message: 'User registered successfully' });

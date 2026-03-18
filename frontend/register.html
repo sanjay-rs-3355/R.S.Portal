@@ -8,76 +8,147 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="auth.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: linear-gradient(45deg, #4f46e5, #818cf8, #c7d2fe);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .floating-shape {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            border-radius: 50%;
+            z-index: -1;
+            animation: float 20s infinite linear;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+        }
+
+        .glass-card {
+            transform: translateY(20px);
+            opacity: 0;
+            animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes slideUp {
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .input-group {
+            opacity: 0;
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        .input-group:nth-child(1) { animation-delay: 0.2s; }
+        .input-group:nth-child(2) { animation-delay: 0.3s; }
+        .input-group:nth-child(3) { animation-delay: 0.4s; }
+        .input-group:nth-child(4) { animation-delay: 0.5s; }
+        .input-group:nth-child(5) { animation-delay: 0.6s; }
+        .input-group:nth-child(6) { animation-delay: 0.7s; }
+
+        @keyframes fadeIn {
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
 </head>
 
 <body>
+    <div class="animated-bg"></div>
+    <!-- Add some floating shapes for extra premium feel -->
+    <div class="floating-shape" style="width: 100px; height: 100px; left: 10%; bottom: -100px; animation-delay: 0s;"></div>
+    <div class="floating-shape" style="width: 150px; height: 150px; left: 30%; bottom: -150px; animation-delay: 5s;"></div>
+    <div class="floating-shape" style="width: 80px; height: 80px; left: 70%; bottom: -80px; animation-delay: 10s;"></div>
+    
     <div id="toast-container"></div>
 
     <div class="register-body">
         <div class="glass-card">
-            <!-- Close button if needed, or back link -->
-            <a href="index.html" style="position: absolute; top: 20px; right: 25px; color: #333; font-size: 24px;"><i
-                    class="fa-solid fa-xmark"></i></a>
+            <!-- Close button -->
+            <a href="index.html" class="close-btn" title="Back to Login"><i class="fa-solid fa-xmark"></i></a>
 
             <div class="glass-left">
                 <div class="glass-logo">
-                    <div class="logo-icon" style="background: none; width: auto; height: auto;">
-                        <img src="assets/logo.jpg" alt="Logo" style="height: 50px;">
-                    </div>
+                    <img src="assets/logo.jpg" alt="Logo" class="logo-img">
                     <h1>R.S.Portal</h1>
                 </div>
 
-                <h2 class="glass-title">Register</h2>
+                <h2 class="glass-title">Create Account</h2>
+                <p class="glass-subtitle">Join our collaborative community today.</p>
 
-                <form onsubmit="register(event)">
+                <form id="registerForm" onsubmit="register(event)">
                     <div class="input-group">
-                        <label class="glass-label">Full Name</label>
-                        <input type="text" id="fullname" class="glass-input" placeholder="Narendra Singh">
+                        <label class="glass-label"><i class="fa-regular fa-user"></i> Full Name</label>
+                        <input type="text" id="fullname" class="glass-input" placeholder="Narendra Singh" required>
                     </div>
 
                     <div class="input-group">
-                        <label class="glass-label">E-mail</label>
-                        <input type="email" id="email" class="glass-input" placeholder="username@gmail.com">
+                        <label class="glass-label"><i class="fa-regular fa-envelope"></i> E-mail</label>
+                        <input type="email" id="email" class="glass-input" placeholder="name@company.com" required>
                     </div>
 
-                    <div class="input-group">
-                        <label class="glass-label">Password</label>
-                        <div class="password-wrapper">
-                            <input type="password" id="password" class="glass-input" placeholder="Password">
-                            <i class="fa-regular fa-eye-slash toggle-pw"></i>
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label class="glass-label"><i class="fa-solid fa-lock"></i> Password</label>
+                            <div class="password-wrapper">
+                                <input type="password" id="password" class="glass-input" placeholder="••••••••" required>
+                                <i class="fa-regular fa-eye-slash toggle-pw"></i>
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label class="glass-label"><i class="fa-solid fa-shield-check"></i> Confirm</label>
+                            <div class="password-wrapper">
+                                <input type="password" id="confirm-password" class="glass-input" placeholder="••••••••" required>
+                                <i class="fa-regular fa-eye-slash toggle-pw"></i>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="input-group">
-                        <label class="glass-label">Confirm Password</label>
-                        <div class="password-wrapper">
-                            <input type="password" id="confirm-password" class="glass-input" placeholder="Password">
-                            <i class="fa-regular fa-eye-slash toggle-pw"></i>
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label class="glass-label"><i class="fa-solid fa-user-tag"></i> Role</label>
+                            <select id="role" class="glass-input select-input">
+                                <option value="member">Member</option>
+                                <option value="admin">Admin</option>
+                            </select>
                         </div>
-                    </div>
 
-                    <div class="input-group">
-                        <label class="glass-label">Role</label>
-                        <select id="role" class="glass-input"
-                            style="background: rgba(255, 255, 255, 0.9); color: #333;">
-                            <option value="member">Member</option>
-                            <option value="admin">Admin</option>
-                        </select>
-                    </div>
-
-                    <div class="input-group">
-                        <label class="glass-label">Designation</label>
-                        <select id="designation" class="glass-input"
-                            style="background: rgba(255, 255, 255, 0.9); color: #333;">
-                            <option value="Full-Stack Developer">Full-Stack Developer</option>
-                            <option value="Frontend Developer">Frontend Developer</option>
-                            <option value="Backend Developer">Backend Developer</option>
-                            <option value="UI-Designer">UI-Designer</option>
-                            <option value="Designer">Designer</option>
-                            <option value="Project Manager">Project Manager</option>
-                            <option value="Tester">Tester</option>
-                            <option value="Member">Member</option>
-                        </select>
+                        <div class="input-group">
+                            <label class="glass-label"><i class="fa-solid fa-briefcase"></i> Designation</label>
+                            <select id="designation" class="glass-input select-input">
+                                <option value="Full-Stack Developer">Full-Stack Developer</option>
+                                <option value="Frontend Developer">Frontend Developer</option>
+                                <option value="Backend Developer">Backend Developer</option>
+                                <option value="UI-Designer">UI-Designer</option>
+                                <option value="Designer">Designer</option>
+                                <option value="Project Manager">Project Manager</option>
+                                <option value="Tester">Tester</option>
+                                <option value="Member">Member</option>
+                            </select>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -86,62 +157,76 @@
                 <div class="avatar-section">
                     <div class="glass-label" style="font-size: 16px; margin-bottom: 20px;">Profile Picture</div>
 
-                    <div class="main-avatar">
-                        <i class="fa-regular fa-user"></i>
-                        <button class="upload-btn">Upload Image <i class="fa-solid fa-cloud-arrow-up"></i></button>
+                    <div class="main-avatar" id="avatarPreviewContainer">
+                        <i class="fa-regular fa-user" id="defaultAvatarIcon"></i>
+                        <img id="avatarPreview" src="" style="display: none; width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+                        <button class="upload-btn" type="button" onclick="document.getElementById('file-upload').click()">
+                            <i class="fa-solid fa-camera"></i>
+                        </button>
                         <!-- Hidden file input -->
-                        <input type="file" id="file-upload" style="display: none;">
+                        <input type="file" id="file-upload" style="display: none;" accept="image/*">
                     </div>
 
-                    <div class="or-divider">or</div>
-                    <div class="glass-label" style="font-size: 14px; opacity: 0.8;">select Avatar</div>
+                    <div class="or-divider">or select an avatar</div>
 
                     <div class="avatar-options">
                         <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" class="avatar-option"
-                            onclick="selectAvatar(this)">
+                            onclick="selectAvatar(this)" data-url="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix">
                         <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka" class="avatar-option"
-                            onclick="selectAvatar(this)">
+                            onclick="selectAvatar(this)" data-url="https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka">
                         <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Bob" class="avatar-option"
-                            onclick="selectAvatar(this)">
+                            onclick="selectAvatar(this)" data-url="https://api.dicebear.com/7.x/avataaars/svg?seed=Bob">
                         <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Jack" class="avatar-option"
-                            onclick="selectAvatar(this)">
+                            onclick="selectAvatar(this)" data-url="https://api.dicebear.com/7.x/avataaars/svg?seed=Jack">
                     </div>
+                    <input type="hidden" id="selectedAvatarUrl" value="">
                 </div>
 
-                <button class="btn-primary-lg glass-btn" onclick="register(event)">Register</button>
+                <button class="btn-primary-lg glass-btn" type="button" onclick="register(event)">
+                    <span>Create Account</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
 
                 <div class="divider">
-                    <span>or register with</span>
+                    <span>Quick Register</span>
                 </div>
 
-                <div class="social-login">
-                    <button class="social-btn" onclick="window.location.href = '/api/auth/google'">
+                <div class="social-login-grid">
+                    <button class="social-btn google" onclick="window.location.href = '/api/auth/google'">
                         <img src="https://img.icons8.com/color/48/google-logo.png" alt="Google">
-                        <span>Sign up with Google</span>
                     </button>
-                    <button class="social-btn" onclick="window.location.href = '/api/auth/github'">
-                        <i class="fa-brands fa-github" style="color: #24292e;"></i>
-                        <span>Sign up with GitHub</span>
+                    <button class="social-btn github" onclick="window.location.href = '/api/auth/github'">
+                        <i class="fa-brands fa-github"></i>
                     </button>
-                    <button class="social-btn" onclick="window.location.href = '/api/auth/facebook'">
-                        <i class="fa-brands fa-facebook-f" style="color: #1877f2;"></i>
-                        <span>Sign up with Facebook</span>
+                    <button class="social-btn facebook" onclick="window.location.href = '/api/auth/facebook'">
+                        <i class="fa-brands fa-facebook-f"></i>
                     </button>
                 </div>
 
-                <p class="mt-4">Already have an account? <a href="index.html">Sign in here</a></p>
+                <p class="login-link">Already a member? <a href="index.html">Log in</a></p>
             </div>
         </div>
     </div>
 
     <script src="app.js"></script>
     <script>
+        let currentAvatarUrl = "";
 
         // Avatar Selection Logic
         function selectAvatar(imgElement) {
             document.querySelectorAll('.avatar-option').forEach(img => img.classList.remove('selected'));
             imgElement.classList.add('selected');
-            // Logic to set the avatar
+            
+            const url = imgElement.getAttribute('data-url');
+            currentAvatarUrl = url;
+            document.getElementById('selectedAvatarUrl').value = url;
+            
+            // Update preview
+            const preview = document.getElementById('avatarPreview');
+            const icon = document.getElementById('defaultAvatarIcon');
+            preview.src = url;
+            preview.style.display = 'block';
+            icon.style.display = 'none';
         }
 
         // Toggle Password Visibility
@@ -160,56 +245,99 @@
             });
         });
 
-        // File Upload Trigger
-        document.querySelector('.upload-btn').addEventListener('click', () => {
-            document.getElementById('file-upload').click();
+        // File Upload Preview
+        document.getElementById('file-upload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const preview = document.getElementById('avatarPreview');
+                    const icon = document.getElementById('defaultAvatarIcon');
+                    preview.src = event.target.result;
+                    preview.style.display = 'block';
+                    icon.style.display = 'none';
+                    currentAvatarUrl = event.target.result; // This will be base64
+                    document.getElementById('selectedAvatarUrl').value = 'uploaded';
+                    
+                    // Clear selected class from dicebear avatars
+                    document.querySelectorAll('.avatar-option').forEach(img => img.classList.remove('selected'));
+                };
+                reader.readAsDataURL(file);
+            }
         });
 
         async function register(event) {
             event.preventDefault();
 
-            const fullname = document.getElementById("fullname").value;
-            const email = document.getElementById("email").value;
+            const fullname = document.getElementById("fullname").value.trim();
+            const email = document.getElementById("email").value.trim();
             const password = document.getElementById("password").value;
             const confirmPassword = document.getElementById("confirm-password").value;
-
-            if (password !== confirmPassword) {
-                showToast("Passwords do not match", "error");
-                return;
-            }
+            const role = document.getElementById("role").value;
+            const designation = document.getElementById("designation").value;
+            const avatarUrl = document.getElementById('selectedAvatarUrl').value;
 
             if (!fullname || !email || !password) {
-                showToast("Please fill all fields", "error");
+                showToast("Please fill all mandatory fields.", "error");
                 return;
             }
 
-            const role = document.getElementById("role")?.value || 'member';
-            const designation = document.getElementById("designation")?.value || 'Member';
+            if (password !== confirmPassword) {
+                showToast("Passwords do not match.", "error");
+                return;
+            }
+
+            if (password.length < 6) {
+                showToast("Password must be at least 6 characters.", "error");
+                return;
+            }
+
+            const btn = event.currentTarget.tagName === 'BUTTON' ? event.currentTarget : document.querySelector('.glass-btn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Processing...';
+            btn.disabled = true;
 
             try {
+                // Determine if we should send the image as a file or a URL
+                const formData = new FormData();
+                formData.append('name', fullname);
+                formData.append('email', email);
+                formData.append('password', password);
+                formData.append('role', role);
+                formData.append('designation', designation);
+                
+                if (document.getElementById('file-upload').files[0]) {
+                    formData.append('profile_image', document.getElementById('file-upload').files[0]);
+                } else if (avatarUrl && avatarUrl !== 'uploaded') {
+                    formData.append('profile_image_url', avatarUrl);
+                }
+
                 const res = await fetch('/api/auth/register', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name: fullname, email, password, role, designation })
+                    // Note: When sending FormData, don't set Content-Type header manually
+                    body: formData
                 });
 
                 const data = await res.json();
 
                 if (res.ok) {
-                    showToast("Registration Successful! Redirecting...");
+                    showToast("Account created successfully!");
                     setTimeout(() => {
-                        window.location.href = "index.html";
+                        window.location.href = "index.html?registered=true";
                     }, 1500);
                 } else {
-                    showToast(data.message || "Registration failed", "error");
+                    showToast(data.message || "Registration failed.", "error");
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
                 }
             } catch (error) {
                 console.error("Register error:", error);
-                showToast("Server error during registration", "error");
+                showToast("Connection error. Please try again.", "error");
+                btn.innerHTML = originalText;
+                btn.disabled = false;
             }
         }
     </script>
-
 </body>
 
 </html>

@@ -10,12 +10,18 @@ async function handleSocialLogin(profile, cb, provider) {
     try {
         let email = '';
         let name = profile.displayName || profile.username || 'User';
+        let profileImage = null;
 
         if (profile.emails && profile.emails.length > 0) {
             email = profile.emails[0].value;
         } else {
             // If no email provided by OAuth (common with Github), fake one using ID
             email = `${profile.id}@${provider}.auth`;
+        }
+
+        // Extract profile image from different providers
+        if (profile.photos && profile.photos.length > 0) {
+            profileImage = profile.photos[0].value;
         }
 
         // Check if user exists by email
@@ -25,7 +31,7 @@ async function handleSocialLogin(profile, cb, provider) {
 
         if (existing.length > 0) {
             user = existing[0];
-            // Unified account logic: if existing, just login
+            // Unified account logic: if existing, just update last login or leave as is
         } else {
             // Create new member user with a random complex password
             const randomPassword = crypto.randomBytes(16).toString('hex');
@@ -34,8 +40,8 @@ async function handleSocialLogin(profile, cb, provider) {
             const designation = 'Member';
 
             const [result] = await db.execute(
-                'INSERT INTO users (name, email, password, role, designation) VALUES (?, ?, ?, ?, ?)',
-                [name, email, hashedPassword, role, designation]
+                'INSERT INTO users (name, email, password, role, designation, profile_image) VALUES (?, ?, ?, ?, ?, ?)',
+                [name, email, hashedPassword, role, designation, profileImage]
             );
 
             // Fetch newly created user
