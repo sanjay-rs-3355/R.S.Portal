@@ -43,23 +43,34 @@ const generateOAuthToken = (user, res) => {
         { expiresIn: '24h' }
     );
     // Redirect back to frontend with token in the URL query
-    res.redirect(`/?token=${token}`);
+    // FRONTEND_URL should be set in Render env vars to https://r-s-portal.vercel.app (or wherever the frontend is)
+    const frontendUrl = process.env.FRONTEND_URL || '';
+    res.redirect(`${frontendUrl}/?token=${token}`);
 };
 
 // ---------------- Google OAuth ----------------
-router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+router.get('/google', (req, res, next) => {
+    if (!process.env.GOOGLE_CLIENT_ID) return res.redirect('/index.html?error=Google_OAuth_not_configured');
+    passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next);
+});
 router.get('/google/callback', passport.authenticate('google', { session: false, failureRedirect: '/index.html?error=google_auth_failed' }),
     (req, res) => generateOAuthToken(req.user, res)
 );
 
 // ---------------- GitHub OAuth ----------------
-router.get('/github', passport.authenticate('github', { scope: ['user:email'] }));
+router.get('/github', (req, res, next) => {
+    if (!process.env.GITHUB_CLIENT_ID) return res.redirect('/index.html?error=GitHub_OAuth_not_configured');
+    passport.authenticate('github', { scope: ['user:email'] })(req, res, next);
+});
 router.get('/github/callback', passport.authenticate('github', { session: false, failureRedirect: '/index.html?error=github_auth_failed' }),
     (req, res) => generateOAuthToken(req.user, res)
 );
 
 // ---------------- Facebook OAuth ----------------
-router.get('/facebook', passport.authenticate('facebook', { scope: ['email'] }));
+router.get('/facebook', (req, res, next) => {
+    if (!process.env.FACEBOOK_APP_ID) return res.redirect('/index.html?error=Facebook_OAuth_not_configured');
+    passport.authenticate('facebook', { scope: ['email'] })(req, res, next);
+});
 router.get('/facebook/callback', passport.authenticate('facebook', { session: false, failureRedirect: '/index.html?error=facebook_auth_failed' }),
     (req, res) => generateOAuthToken(req.user, res)
 );
