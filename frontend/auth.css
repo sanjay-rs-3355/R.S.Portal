@@ -339,9 +339,15 @@
 .prism-overlay {
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.65), rgba(139, 92, 246, 0.45));
-    backdrop-filter: saturate(180%) brightness(0.85);
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.75), rgba(139, 92, 246, 0.45));
+    backdrop-filter: saturate(180%) brightness(0.9);
     z-index: 1;
+}
+
+/* Subtle Floating Animation */
+@keyframes heroFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
 }
 
 .hero-content {
@@ -349,6 +355,7 @@
     z-index: 10;
     width: 100%;
     max-width: 520px;
+    animation: heroFloat 8s ease-in-out infinite;
 }
 
 .glass-hero-card {
@@ -363,15 +370,28 @@
 }
 
 .hero-badge {
-    display: inline-block;
-    padding: 6px 14px;
-    background: rgba(255, 255, 255, 0.15);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 50px;
     font-size: 11px;
     font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 1.5px;
     margin-bottom: 24px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.hero-badge::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: #10b981;
+    border-radius: 50%;
+    box-shadow: 0 0 10px #10b981;
 }
 
 .glass-hero-card h3 {
@@ -383,10 +403,11 @@
 }
 
 .glass-hero-card p {
-    font-size: 17px;
-    opacity: 0.85;
-    line-height: 1.6;
+    font-size: 18px;
+    opacity: 0.9;
+    line-height: 1.8;
     margin-bottom: 40px;
+    color: #f1f5f9;
 }
 
 .hero-stats {
