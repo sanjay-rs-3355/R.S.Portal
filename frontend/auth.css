@@ -12,7 +12,7 @@
 /* LEFT SIDE: FORM */
 .login-left {
     flex: 0 0 55%;
-    background: #ffffff;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -142,9 +142,11 @@
 /* Floating Label Logic */
 .input-wrapper input:focus,
 .input-wrapper input:not(:placeholder-shown) {
-    background: #ffffff;
+    background: #ffffff !important;
     border-color: var(--primary-color);
-    box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.12);
+    box-shadow: 
+        0 10px 25px -5px rgba(99, 102, 241, 0.12),
+        0 5px 15px -10px rgba(0, 0, 0, 0.05);
 }
 
 .input-wrapper input:focus + label,
@@ -233,7 +235,7 @@
 }
 
 .auth-divider span {
-    background: #ffffff;
+    background: transparent;
     padding: 0 15px;
     font-size: 13px;
     font-weight: 700;
