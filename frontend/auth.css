@@ -339,33 +339,35 @@
 .prism-overlay {
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.75), rgba(139, 92, 246, 0.45));
-    backdrop-filter: saturate(180%) brightness(0.9);
+    background: linear-gradient(145deg, rgba(99, 102, 241, 0.4), rgba(139, 92, 246, 0.25));
+    backdrop-filter: blur(4px) saturate(140%);
     z-index: 1;
 }
 
-/* Subtle Floating Animation */
+/* Stable Floating Animation */
 @keyframes heroFloat {
     0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
+    50% { transform: translateY(-8px); }
 }
 
 .hero-content {
     position: relative;
     z-index: 10;
     width: 100%;
-    max-width: 520px;
-    animation: heroFloat 8s ease-in-out infinite;
+    max-width: 480px;
+    animation: heroFloat 10s ease-in-out infinite;
 }
 
 .glass-hero-card {
-    background: rgba(255, 255, 255, 0.12);
-    backdrop-filter: blur(32px) saturate(180%);
-    -webkit-backdrop-filter: blur(32px) saturate(180%);
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(48px) saturate(210%);
+    -webkit-backdrop-filter: blur(48px) saturate(210%);
     border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 32px;
-    padding: 50px;
-    box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+    border-radius: 40px;
+    padding: 64px;
+    box-shadow: 
+        0 40px 100px -30px rgba(0, 0, 0, 0.4),
+        0 0 0 1px rgba(255, 255, 255, 0.05) inset;
     color: white;
 }
 
@@ -374,15 +376,14 @@
     align-items: center;
     gap: 8px;
     padding: 8px 16px;
-    background: rgba(255, 255, 255, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 50px;
     font-size: 11px;
-    font-weight: 800;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 1.5px;
-    margin-bottom: 24px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    letter-spacing: 2px;
+    margin-bottom: 32px;
 }
 
 .hero-badge::before {
@@ -391,30 +392,32 @@
     height: 6px;
     background: #10b981;
     border-radius: 50%;
-    box-shadow: 0 0 10px #10b981;
+    box-shadow: 0 0 12px #10b981;
 }
 
 .glass-hero-card h3 {
-    font-size: 38px;
+    font-size: 44px;
     font-weight: 800;
-    line-height: 1.1;
-    letter-spacing: -1.5px;
-    margin-bottom: 16px;
+    line-height: 1.15;
+    letter-spacing: -2px;
+    margin-bottom: 24px;
+    color: #ffffff;
+    font-family: 'Inter', sans-serif;
 }
 
 .glass-hero-card p {
     font-size: 18px;
     opacity: 0.9;
-    line-height: 1.8;
-    margin-bottom: 40px;
-    color: #f1f5f9;
+    line-height: 1.7;
+    margin-bottom: 48px;
+    color: #e2e8f0;
 }
 
 .hero-stats {
     display: flex;
     align-items: center;
-    gap: 30px;
-    padding-top: 30px;
+    gap: 40px;
+    padding-top: 40px;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -424,22 +427,24 @@
 }
 
 .stat-val {
-    font-size: 24px;
+    font-size: 28px;
     font-weight: 800;
     letter-spacing: -1px;
+    color: #ffffff;
 }
 
 .stat-lbl {
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 700;
-    opacity: 0.6;
+    opacity: 0.5;
     text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .stat-divider {
-    width: 1.5px;
-    height: 30px;
-    background: rgba(255, 255, 255, 0.1);
+    width: 1px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.15);
 }
 
 /* Reveal Animation */
