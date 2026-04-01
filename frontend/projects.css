@@ -30,14 +30,14 @@
 }
 
 .project-card-premium:hover {
-    transform: translateY(-10px) scale(1.02);
+    transform: translateY(-8px) scale(1.02);
     background: rgba(255, 255, 255, 1);
-    box-shadow: 0 30px 60px -12px rgba(99, 102, 241, 0.18), 0 18px 36px -18px rgba(0, 0, 0, 0.1);
-    border-color: rgba(99, 102, 241, 0.4);
+    box-shadow: 0 20px 40px -12px rgba(99, 102, 241, 0.15), 0 10px 20px -8px rgba(0, 0, 0, 0.08);
+    border-color: rgba(99, 102, 241, 0.3);
 }
 
 .project-card-premium:active {
-    transform: translateY(-2px) scale(0.98);
+    transform: translateY(-2px) scale(1);
 }
 
 .project-card-header {
@@ -316,8 +316,8 @@
 }
 
 .team-modern-card:hover {
-    transform: translateY(-5px) scale(1.02);
-    box-shadow: 0 12px 20px -8px rgba(59, 130, 246, 0.25);
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 0 16px 32px -10px rgba(59, 130, 246, 0.15), 0 8px 16px -8px rgba(0, 0, 0, 0.05);
     border-color: #bfdbfe;
 }
 

@@ -54,21 +54,22 @@ function renderProjectStatsChart(data) {
             datasets: [{
                 data: [completed, inProgress, pending, review],
                 backgroundColor: ['#10b981', '#6366f1', '#f59e0b', '#8b5cf6'],
-                hoverBackgroundColor: ['#059669', '#4f46e5', '#d97706', '#7c3aed'],
-                borderWidth: 3,
-                borderColor: '#ffffff',
-                hoverBorderColor: '#ffffff',
-                hoverOffset: 8
+                hoverBackgroundColor: ['#34d399', '#818cf8', '#fbbf24', '#a78bfa'],
+                borderWidth: 0,
+                hoverBorderWidth: 4,
+                hoverBorderColor: 'rgba(99, 102, 241, 0.4)',
+                hoverOffset: 12
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            cutout: '72%',
+            cutout: '76%',
             animation: {
                 animateRotate: true,
-                duration: 800,
-                easing: 'easeInOutQuart'
+                animateScale: true,
+                duration: 1200,
+                easing: 'easeOutQuart'
             },
             plugins: {
                 legend: {
@@ -134,13 +135,13 @@ function renderPerformanceChart(data) {
                     data: completedData,
                     borderColor: '#6366f1',
                     backgroundColor: gradBlue,
-                    tension: 0.45,
-                    pointRadius: 4,
-                    pointHoverRadius: 7,
-                    pointBackgroundColor: '#ffffff',
-                    pointBorderColor: '#6366f1',
-                    pointBorderWidth: 2,
-                    borderWidth: 2.5,
+                    tension: 0.5,
+                    pointRadius: 0,
+                    pointHoverRadius: 8,
+                    pointBackgroundColor: '#6366f1',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 3,
+                    borderWidth: 4,
                     fill: true
                 },
                 {
@@ -148,13 +149,13 @@ function renderPerformanceChart(data) {
                     data: createdData,
                     borderColor: '#10b981',
                     backgroundColor: gradTeal,
-                    tension: 0.45,
-                    pointRadius: 4,
-                    pointHoverRadius: 7,
-                    pointBackgroundColor: '#ffffff',
-                    pointBorderColor: '#10b981',
-                    pointBorderWidth: 2,
-                    borderWidth: 2.5,
+                    tension: 0.5,
+                    pointRadius: 0,
+                    pointHoverRadius: 8,
+                    pointBackgroundColor: '#10b981',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 3,
+                    borderWidth: 4,
                     fill: true
                 }
             ]
@@ -163,7 +164,7 @@ function renderPerformanceChart(data) {
             responsive: true,
             maintainAspectRatio: false,
             interaction: { mode: 'index', intersect: false },
-            animation: { duration: 900, easing: 'easeInOutQuart' },
+            animation: { duration: 1200, easing: 'easeOutQuart' },
             scales: {
                 y: {
                     beginAtZero: true,

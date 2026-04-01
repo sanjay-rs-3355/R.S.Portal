@@ -55,7 +55,7 @@
 }
 
 .card-box:hover {
-    background: rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, 0.9);
     box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.05);
 }
 
@@ -72,10 +72,10 @@
 }
 
 .card-box:hover {
-    box-shadow: 0 30px 60px -12px rgba(99, 102, 241, 0.12), 0 18px 36px -18px rgba(0, 0, 0, 0.08);
-    transform: translateY(-8px);
+    box-shadow: 0 24px 48px -12px rgba(99, 102, 241, 0.15), 0 12px 24px -12px rgba(0, 0, 0, 0.08);
+    transform: translateY(-6px) scale(1.01);
     border-color: rgba(99, 102, 241, 0.3);
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(255, 255, 255, 0.98);
 }
 
 .card-box:hover::before {
@@ -674,9 +674,9 @@
 }
 
 .stat-card-modern:hover {
-    transform: translateY(-8px);
+    transform: translateY(-6px) scale(1.02);
     background: white;
-    box-shadow: 0 20px 40px -15px rgba(99, 102, 241, 0.15);
+    box-shadow: 0 16px 32px -12px rgba(99, 102, 241, 0.18);
 }
 
 .stat-card-modern:hover::before {

@@ -22,15 +22,26 @@ function showToast(message, type = 'success') {
         container.id = 'toast-container';
         document.body.appendChild(container);
     }
+
+    const icons = {
+        success: '<i class="fa-solid fa-check"></i>',
+        error: '<i class="fa-solid fa-xmark"></i>',
+        warning: '<i class="fa-solid fa-exclamation"></i>',
+        info: '<i class="fa-solid fa-info"></i>'
+    };
+
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    toast.innerHTML = `<div class="toast-content">${message}</div>`;
+    toast.innerHTML = `
+        <div class="toast-icon">${icons[type] || icons.info}</div>
+        <div class="toast-content">${message}</div>
+    `;
     container.appendChild(toast);
 
     setTimeout(() => {
         toast.style.animation = 'fadeOut 0.3s forwards';
         toast.addEventListener('animationend', () => toast.remove());
-    }, 3000);
+    }, 4500);
 }
 
 function openModal(id) {

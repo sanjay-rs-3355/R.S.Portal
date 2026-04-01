@@ -17,9 +17,9 @@
     <div class="login-container">
         <!-- Left Side: Form -->
         <div class="login-left">
-            <div class="brand">
+            <div class="brand fadeInUp" style="animation-delay: 0.1s;">
                 <div class="logo-icon" style="background: none; width: auto; height: auto;">
-                    <img src="assets/logo.jpg" alt="Logo" style="height: 50px; border-radius: 10px;">
+                    <img src="assets/logo.jpg" alt="Logo" style="height: 50px; border-radius: 10px; box-shadow: var(--shadow-md);">
                 </div>
                 <h1>R.S.Portal</h1>
             </div>
@@ -28,12 +28,12 @@
                 <h2>Welcome back</h2>
                 <p>Enter your credentials to access your workspace.</p>
 
-                <div class="input-group">
+                <div class="input-group fadeInUp" style="animation-delay: 0.3s;">
                     <label for="email"><i class="fa-regular fa-envelope"></i> Email Address</label>
                     <input type="email" id="email" placeholder="name@company.com" required>
                 </div>
 
-                <div class="input-group">
+                <div class="input-group fadeInUp" style="animation-delay: 0.4s;">
                     <label for="password"><i class="fa-solid fa-lock"></i> Password</label>
                     <div class="password-wrapper">
                         <input type="password" id="password" placeholder="••••••••" required>
@@ -41,18 +41,18 @@
                     </div>
                 </div>
 
-                <a href="#" class="forgot-pw">Forgot Password?</a>
+                <a href="#" class="forgot-pw fadeInUp" style="animation-delay: 0.5s;">Forgot Password?</a>
 
-                <button onclick="login()" id="loginBtn" class="btn-primary-lg">
+                <button onclick="login()" id="loginBtn" class="btn-primary-lg fadeInUp" style="animation-delay: 0.6s;">
                     <span>Sign in</span>
                     <i class="fa-solid fa-arrow-right"></i>
                 </button>
 
-                <div class="divider">
+                <div class="divider fadeInUp" style="animation-delay: 0.7s;">
                     <span>or continue with</span>
                 </div>
 
-                <div class="social-login-grid">
+                <div class="social-login-grid fadeInUp" style="animation-delay: 0.8s;">
                     <button class="social-btn google" onclick="window.location.href = API_BASE_URL + '/api/auth/google'">
                         <img src="https://img.icons8.com/color/48/google-logo.png" alt="Google">
                     </button>
@@ -64,16 +64,16 @@
                     </button>
                 </div>
 
-                <p class="login-link">Don't have an account yet? <a href="register.html">Register for free</a></p>
+                <p class="login-link fadeInUp" style="animation-delay: 0.9s;">Don't have an account yet? <a href="register.html">Register for free</a></p>
             </div>
         </div>
 
         <!-- Right Side: Decorative -->
         <div class="login-right">
             <!-- Background image set in CSS -->
-            <div style="position: absolute; bottom: 60px; left: 60px; color: white; z-index: 2; max-width: 400px;">
-                <h3 style="font-size: 32px; font-weight: 700; margin-bottom: 15px;">Collaborate without boundaries.</h3>
-                <p style="font-size: 18px; opacity: 0.9;">Manage projects, chat with your team, and track tasks all in one place.</p>
+            <div class="glass-card reveal revealed" style="position: absolute; bottom: 60px; left: 60px; z-index: 2; max-width: 400px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);">
+                <h3 style="font-size: 32px; font-weight: 700; margin-bottom: 15px; color: white;">Collaborate without boundaries.</h3>
+                <p style="font-size: 18px; opacity: 0.9; color: white;">Manage projects, chat with your team, and track tasks all in one place.</p>
             </div>
         </div>
     </div>
