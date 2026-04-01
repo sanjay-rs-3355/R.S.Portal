@@ -1,19 +1,19 @@
 /* ================= MODERN PROJECT CARDS ================= */
 .project-card-premium {
     background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.6);
-    border-radius: 20px;
-    padding: 20px;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    transition: var(--transition-smooth);
     cursor: pointer;
     position: relative;
     display: flex;
     flex-direction: column;
-    gap: 14px;
-    margin-bottom: 16px;
-    box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.03);
+    gap: 16px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow-md);
     min-width: 240px;
 }
 
@@ -30,9 +30,15 @@
 }
 
 .project-card-premium:hover {
+<<<<<<< HEAD
     transform: translateY(-8px) scale(1.02);
     background: rgba(255, 255, 255, 1);
     box-shadow: 0 20px 40px -12px rgba(99, 102, 241, 0.15), 0 10px 20px -8px rgba(0, 0, 0, 0.08);
+=======
+    transform: translateY(-6px);
+    background: #ffffff;
+    box-shadow: var(--shadow-lg);
+>>>>>>> f438e85 (Premium UI Polish: Implemented precision surface depth, super-sat glassmorphism, and high-contrast status components. Refined typography scales and shadow levels across Tasks, Projects, and Chat modules while strictly maintaining original layout and indigo theme.)
     border-color: rgba(99, 102, 241, 0.3);
 }
 
@@ -58,12 +64,13 @@
 }
 
 .project-status-badge {
-    padding: 4px 10px;
-    border-radius: 8px;
+    padding: 6px 12px;
+    border-radius: 50px;
     font-size: 9px;
     font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 0.8px;
+    letter-spacing: 1px;
+    border: 1px solid transparent;
 }
 
 .status-active {
@@ -120,19 +127,26 @@
 }
 
 .member-avg-mini {
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
-    border: 2px solid #fff;
-    margin-left: -8px;
-    background: #6366f1;
+    border: 2px solid #ffffff;
+    margin-left: -10px;
+    background: var(--primary-color);
     color: white;
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 800;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition-fast);
+}
+
+.member-avg-mini:hover {
+    transform: translateY(-3px);
+    z-index: 10;
+    box-shadow: var(--shadow-md);
 }
 
 .project-progress-circle {

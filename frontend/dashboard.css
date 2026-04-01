@@ -1308,31 +1308,40 @@
 }
 
 .modern-table thead th {
-    background: #f8fafc;
-    color: #64748b;
+    background: rgba(248, 250, 252, 0.8);
+    backdrop-filter: blur(12px);
+    color: #475569;
     font-weight: 700;
     text-transform: uppercase;
     font-size: 11px;
-    letter-spacing: 0.8px;
-    padding: 14px 18px;
+    letter-spacing: 1px;
+    padding: 16px 20px;
     text-align: left;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 2px solid #f1f5f9;
     position: sticky;
     top: 0;
+    z-index: 10;
 }
 
 .modern-table tbody td {
-    padding: 14px 18px;
-    border-bottom: 1px solid #f1f5f9;
+    padding: 18px 20px;
+    border-bottom: 1px solid #f8fafc;
     color: #334155;
     white-space: nowrap;
     max-width: 250px;
     overflow: hidden;
     text-overflow: ellipsis;
+    transition: var(--transition-fast);
+}
+
+.modern-table tbody tr {
+    transition: var(--transition-fast);
 }
 
 .modern-table tbody tr:hover {
-    background: #fcfdfe;
+    background: #f8fafc;
+    box-shadow: inset 4px 0 0 -1px #6366f1;
+    transform: scale(1.002);
 }
 
 .db-action-btn {
