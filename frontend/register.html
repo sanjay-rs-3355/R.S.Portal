@@ -35,8 +35,8 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, rgba(79, 70, 229, 0.4), rgba(129, 140, 248, 0.2), rgba(255, 255, 255, 0.1));
-            backdrop-filter: blur(2px);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.45), rgba(139, 92, 246, 0.35), rgba(255, 255, 255, 0.1));
+            backdrop-filter: blur(4px) saturate(160%);
         }
 
         @keyframes gradientBG {
@@ -188,14 +188,14 @@
                     </div>
 
                     <div class="social-login-grid">
-                        <button class="social-btn google" onclick="window.location.href = '/api/auth/google'">
-                            <img src="https://img.icons8.com/color/48/google-logo.png" alt="Google">
+                        <button class="social-btn google" type="button" onclick="window.location.href = '/api/auth/google'">
+                            <img src="https://img.icons8.com/color/48/google-logo.png" alt="Google" style="width: 24px;">
                         </button>
-                        <button class="social-btn github" onclick="window.location.href = '/api/auth/github'">
-                            <i class="fa-brands fa-github"></i>
+                        <button class="social-btn github" type="button" onclick="window.location.href = '/api/auth/github'">
+                            <i class="fa-brands fa-github" style="font-size: 20px;"></i>
                         </button>
-                        <button class="social-btn facebook" onclick="window.location.href = '/api/auth/facebook'">
-                            <i class="fa-brands fa-facebook-f"></i>
+                        <button class="social-btn facebook" type="button" onclick="window.location.href = '/api/auth/facebook'">
+                            <i class="fa-brands fa-facebook-f" style="font-size: 20px; color: #1877F2;"></i>
                         </button>
                     </div>
 

@@ -30,15 +30,9 @@
 }
 
 .project-card-premium:hover {
-<<<<<<< HEAD
-    transform: translateY(-8px) scale(1.02);
-    background: rgba(255, 255, 255, 1);
-    box-shadow: 0 20px 40px -12px rgba(99, 102, 241, 0.15), 0 10px 20px -8px rgba(0, 0, 0, 0.08);
-=======
     transform: translateY(-6px);
     background: #ffffff;
     box-shadow: var(--shadow-lg);
->>>>>>> f438e85 (Premium UI Polish: Implemented precision surface depth, super-sat glassmorphism, and high-contrast status components. Refined typography scales and shadow levels across Tasks, Projects, and Chat modules while strictly maintaining original layout and indigo theme.)
     border-color: rgba(99, 102, 241, 0.3);
 }
 

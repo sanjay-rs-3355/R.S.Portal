@@ -17,9 +17,9 @@
     <div class="login-container">
         <!-- Left Side: Form -->
         <div class="login-left">
-            <div class="brand fadeInUp" style="animation-delay: 0.1s;">
+            <div class="brand">
                 <div class="logo-icon" style="background: none; width: auto; height: auto;">
-                    <img src="assets/logo.jpg" alt="Logo" style="height: 50px; border-radius: 10px; box-shadow: var(--shadow-md);">
+                    <img src="assets/logo.jpg" alt="Logo" style="height: 50px; border-radius: 12px; box-shadow: var(--shadow-md);">
                 </div>
                 <h1>R.S.Portal</h1>
             </div>
@@ -28,12 +28,12 @@
                 <h2>Welcome back</h2>
                 <p>Enter your credentials to access your workspace.</p>
 
-                <div class="input-group fadeInUp" style="animation-delay: 0.3s;">
+                <div class="input-group">
                     <label for="email"><i class="fa-regular fa-envelope"></i> Email Address</label>
                     <input type="email" id="email" placeholder="name@company.com" required>
                 </div>
 
-                <div class="input-group fadeInUp" style="animation-delay: 0.4s;">
+                <div class="input-group">
                     <label for="password"><i class="fa-solid fa-lock"></i> Password</label>
                     <div class="password-wrapper">
                         <input type="password" id="password" placeholder="••••••••" required>
@@ -41,30 +41,33 @@
                     </div>
                 </div>
 
-                <a href="#" class="forgot-pw fadeInUp" style="animation-delay: 0.5s;">Forgot Password?</a>
+                <a href="#" class="forgot-pw">Forgot Password?</a>
 
-                <button onclick="login()" id="loginBtn" class="btn-primary-lg fadeInUp" style="animation-delay: 0.6s;">
+                <button onclick="login()" id="loginBtn" class="btn-primary-lg">
                     <span>Sign in</span>
                     <i class="fa-solid fa-arrow-right"></i>
                 </button>
 
-                <div class="divider fadeInUp" style="animation-delay: 0.7s;">
+                <div class="divider">
                     <span>or continue with</span>
                 </div>
 
-                <div class="social-login-grid fadeInUp" style="animation-delay: 0.8s;">
+                <div class="social-login-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
                     <button class="social-btn google" onclick="window.location.href = API_BASE_URL + '/api/auth/google'">
-                        <img src="https://img.icons8.com/color/48/google-logo.png" alt="Google">
+                        <img src="https://img.icons8.com/color/48/google-logo.png" alt="Google" style="width: 24px;">
+                        <span>Google</span>
                     </button>
                     <button class="social-btn github" onclick="window.location.href = API_BASE_URL + '/api/auth/github'">
-                        <i class="fa-brands fa-github"></i>
+                        <i class="fa-brands fa-github" style="font-size: 20px;"></i>
+                        <span>GitHub</span>
                     </button>
                     <button class="social-btn facebook" onclick="window.location.href = API_BASE_URL + '/api/auth/facebook'">
-                        <i class="fa-brands fa-facebook-f"></i>
+                        <i class="fa-brands fa-facebook-f" style="font-size: 20px; color: #1877F2;"></i>
+                        <span>Facebook</span>
                     </button>
                 </div>
 
-                <p class="login-link fadeInUp" style="animation-delay: 0.9s;">Don't have an account yet? <a href="register.html">Register for free</a></p>
+                <p class="login-link">Don't have an account yet? <a href="register.html">Register for free</a></p>
             </div>
         </div>
 
