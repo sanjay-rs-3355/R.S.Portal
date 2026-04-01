@@ -12,6 +12,7 @@
     <style>
         body {
             font-family: 'Outfit', sans-serif;
+            overflow-x: hidden;
         }
 
         .animated-bg {
@@ -19,9 +20,9 @@
             top: 0;
             left: 0;
             width: 100%;
-            height: 100%;
+            height: 100vh;
             z-index: -1;
-            background: linear-gradient(45deg, #4f46e5, #818cf8, #c7d2fe);
+            background: linear-gradient(-45deg, #4f46e5, #818cf8, #c7d2fe, #4f46e5);
             background-size: 400% 400%;
             animation: gradientBG 15s ease infinite;
         }
@@ -34,44 +35,22 @@
 
         .floating-shape {
             position: absolute;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(5px);
-            border-radius: 50%;
-            z-index: -1;
-            animation: float 20s infinite linear;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+            z-index: -2;
+            animation: float 25s infinite ease-in-out;
+            pointer-events: none;
         }
 
         @keyframes float {
-            0% { transform: translateY(0) rotate(0deg); opacity: 0; }
-            50% { opacity: 1; }
-            100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+            0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
+            33% { transform: translateY(-50vh) rotate(120deg) scale(1.2); }
+            66% { transform: translateY(-20vh) rotate(240deg) scale(0.8); }
         }
 
-        .glass-card {
-            transform: translateY(20px);
-            opacity: 0;
-            animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-
-        @keyframes slideUp {
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        .input-group {
-            opacity: 0;
-            animation: fadeIn 0.5s ease forwards;
-        }
-
-        .input-group:nth-child(1) { animation-delay: 0.2s; }
-        .input-group:nth-child(2) { animation-delay: 0.3s; }
-        .input-group:nth-child(3) { animation-delay: 0.4s; }
-        .input-group:nth-child(4) { animation-delay: 0.5s; }
-        .input-group:nth-child(5) { animation-delay: 0.6s; }
-        .input-group:nth-child(6) { animation-delay: 0.7s; }
-
-        @keyframes fadeIn {
-            to { opacity: 1; transform: translateY(0); }
-        }
+        /* The rest of the glass-card animations are handled in auth.css */
     </style>
 </head>
 
@@ -113,13 +92,17 @@
                         <div class="input-group">
                             <label class="glass-label"><i class="fa-solid fa-lock"></i> Password</label>
                             <div class="password-wrapper">
-                                <input type="password" id="password" class="glass-input" placeholder="••••••••" required>
+                                <input type="password" id="password" class="glass-input" placeholder="••••••••" required onkeyup="checkPasswordStrength(this.value)">
                                 <i class="fa-regular fa-eye-slash toggle-pw"></i>
                             </div>
+                            <div class="strength-meter">
+                                <div id="strength-bar" class="strength-bar"></div>
+                            </div>
+                            <small id="strength-text" class="strength-text">Password strength</small>
                         </div>
 
                         <div class="input-group">
-                            <label class="glass-label"><i class="fa-solid fa-shield-check"></i> Confirm</label>
+                            <label class="glass-label"><i class="fa-solid fa-shield-halved"></i> Confirm</label>
                             <div class="password-wrapper">
                                 <input type="password" id="confirm-password" class="glass-input" placeholder="••••••••" required>
                                 <i class="fa-regular fa-eye-slash toggle-pw"></i>
@@ -129,7 +112,7 @@
 
                     <div class="input-row">
                         <div class="input-group">
-                            <label class="glass-label"><i class="fa-solid fa-user-tag"></i> Role</label>
+                            <label class="glass-label"><i class="fa-solid fa-user-gear"></i> Role</label>
                             <select id="role" class="glass-input select-input">
                                 <option value="member">Member</option>
                                 <option value="admin">Admin</option>
@@ -137,7 +120,7 @@
                         </div>
 
                         <div class="input-group">
-                            <label class="glass-label"><i class="fa-solid fa-briefcase"></i> Designation</label>
+                            <label class="glass-label"><i class="fa-solid fa-id-card"></i> Designation</label>
                             <select id="designation" class="glass-input select-input">
                                 <option value="Full-Stack Developer">Full-Stack Developer</option>
                                 <option value="Frontend Developer">Frontend Developer</option>
@@ -182,28 +165,30 @@
                     <input type="hidden" id="selectedAvatarUrl" value="">
                 </div>
 
-                <button class="btn-primary-lg glass-btn" type="button" onclick="register(event)">
-                    <span>Create Account</span>
-                    <i class="fa-solid fa-arrow-right"></i>
-                </button>
+                <div class="action-section">
+                    <button class="btn-primary-lg glass-btn" type="button" onclick="register(event)">
+                        <span>Create Account</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
 
-                <div class="divider">
-                    <span>Quick Register</span>
+                    <div class="divider">
+                        <span>Quick Register</span>
+                    </div>
+
+                    <div class="social-login-grid">
+                        <button class="social-btn google" onclick="window.location.href = '/api/auth/google'">
+                            <img src="https://img.icons8.com/color/48/google-logo.png" alt="Google">
+                        </button>
+                        <button class="social-btn github" onclick="window.location.href = '/api/auth/github'">
+                            <i class="fa-brands fa-github"></i>
+                        </button>
+                        <button class="social-btn facebook" onclick="window.location.href = '/api/auth/facebook'">
+                            <i class="fa-brands fa-facebook-f"></i>
+                        </button>
+                    </div>
+
+                    <p class="login-link">Already a member? <a href="index.html">Log in</a></p>
                 </div>
-
-                <div class="social-login-grid">
-                    <button class="social-btn google" onclick="window.location.href = '/api/auth/google'">
-                        <img src="https://img.icons8.com/color/48/google-logo.png" alt="Google">
-                    </button>
-                    <button class="social-btn github" onclick="window.location.href = '/api/auth/github'">
-                        <i class="fa-brands fa-github"></i>
-                    </button>
-                    <button class="social-btn facebook" onclick="window.location.href = '/api/auth/facebook'">
-                        <i class="fa-brands fa-facebook-f"></i>
-                    </button>
-                </div>
-
-                <p class="login-link">Already a member? <a href="index.html">Log in</a></p>
             </div>
         </div>
     </div>
@@ -244,6 +229,33 @@
                 }
             });
         });
+
+        // Password Strength Logic
+        function checkPasswordStrength(password) {
+            const bar = document.getElementById('strength-bar');
+            const text = document.getElementById('strength-text');
+            let strength = 0;
+            
+            if (password.length >= 6) strength++;
+            if (password.match(/[a-z]/) && password.match(/[A-Z]/)) strength++;
+            if (password.match(/\d/)) strength++;
+            if (password.match(/[^a-zA-Z\d]/)) strength++;
+
+            const colors = ['#ef4444', '#f59e0b', '#3b82f6', '#10b981'];
+            const texts = ['Weak', 'Fair', 'Good', 'Strong'];
+            const widths = ['25%', '50%', '75%', '100%'];
+
+            if (password.length === 0) {
+                bar.style.width = '0%';
+                text.innerText = 'Password strength';
+                text.style.color = '#94a3b8';
+            } else {
+                bar.style.width = widths[strength - 1] || '10%';
+                bar.style.backgroundColor = colors[strength - 1] || colors[0];
+                text.innerText = texts[strength - 1] || texts[0];
+                text.style.color = colors[strength - 1] || colors[0];
+            }
+        }
 
         // File Upload Preview
         document.getElementById('file-upload').addEventListener('change', function(e) {
