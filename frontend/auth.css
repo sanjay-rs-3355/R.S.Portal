@@ -11,13 +11,13 @@
 
 /* LEFT SIDE: FORM */
 .login-left {
-    flex: 0 0 45%;
+    flex: 0 0 55%;
     background: #ffffff;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 40px;
+    padding: 60px;
     position: relative;
     z-index: 10;
     box-shadow: 20px 0 60px rgba(0, 0, 0, 0.02);
@@ -313,12 +313,12 @@
 
 /* RIGHT SIDE: VISUAL PANEL */
 .login-right {
-    flex: 1;
+    flex: 0 0 45%;
     position: relative;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 80px;
+    align-items: flex-end;
+    justify-content: flex-start;
+    padding: 40px;
     overflow: hidden;
 }
 
