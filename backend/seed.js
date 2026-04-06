@@ -414,13 +414,33 @@ async function seedDatabase() {
         // ─── 10. ATTACHMENTS ──────────────────────────────────────
         console.log('📎 Inserting attachments...');
         const attachIds = [];
-        const fileNames = ['design.pdf', 'requirements.docx', 'schema.png', 'api_docs.pdf', 'report.xlsx', 'prototype.fig', 'logo.png', 'architecture.png'];
+        const fileNames = [
+            { name: 'System Architecture.pdf', type: 'application/pdf', desc: 'Overview of the microservices architecture.' },
+            { name: 'UI Mockups V2.fig', type: 'image/png', desc: 'Latest high-fidelity designs for the dashboard.' },
+            { name: 'API Specifications.html', type: 'text/html', desc: 'Auto-generated Swagger documentation.' },
+            { name: 'Database Schema.png', type: 'image/png', desc: 'ER diagram for the collaboration portal.' },
+            { name: 'Sprint Report.xlsx', type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', desc: 'Velocity and burndown charts for Sprint 4.' }
+        ];
+
         for (const pid of projectIds) {
             for (let a = 0; a < randInt(2, 5); a++) {
-                const fn = rand(fileNames);
+                const fileData = rand(fileNames);
+                const uploader = rand(Array.from(memberSets[pid]));
+                const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+                const diskPath = uniqueSuffix + '-' + fileData.name.replace(/\s+/g, '_');
+
                 const [res] = await db.query(
-                    'INSERT INTO attachments (project_id, uploaded_by, file_name, file_path) VALUES (?, ?, ?, ?)',
-                    [pid, rand(userIds), fn, '/uploads/' + fn]
+                    'INSERT INTO attachments (project_id, user_id, title, description, filename, file_path, file_size, file_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+                    [
+                        pid, 
+                        uploader, 
+                        fileData.name, 
+                        fileData.desc, 
+                        fileData.name, 
+                        diskPath, 
+                        randInt(1024, 1048576 * 5), 
+                        fileData.type
+                    ]
                 );
                 attachIds.push(res.insertId);
             }
@@ -428,11 +448,17 @@ async function seedDatabase() {
         console.log('   ✅ Attachments inserted.');
 
         // ─── 11. ATTACHMENT COMMENTS ──────────────────────────────
-        for (const aid of attachIds.slice(0, 20)) {
-            await db.query(
-                'INSERT INTO attachment_comments (attachment_id, user_id, content) VALUES (?, ?, ?)',
-                [aid, rand(userIds), rand(['Looks good!', 'Please update this.', 'Approved ✅', 'Needs revision', 'Version 2 attached above'])]
-            );
+        console.log('💬 Inserting attachment comments...');
+        for (const aid of attachIds.slice(0, 30)) {
+            const [[attachment]] = await db.query('SELECT project_id FROM attachments WHERE id = ?', [aid]);
+            const members = Array.from(memberSets[attachment.project_id]);
+            
+            for (let c = 0; c < randInt(1, 4); c++) {
+                await db.query(
+                    'INSERT INTO attachment_comments (attachment_id, user_id, content) VALUES (?, ?, ?)',
+                    [aid, rand(members), rand(['Looks good!', 'Please update the header section.', 'Approved ✅', 'Needs more detail in section 3.', 'Version 2 looks much better.'])]
+                );
+            }
         }
         console.log('   ✅ Attachment comments inserted.');
 
