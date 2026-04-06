@@ -10,9 +10,12 @@ const uploadFile = async (req, res, next) => {
         const userId = req.user.id;
         const file = req.file;
 
+        console.log(`[FILE UPLOAD] Project: ${projectId}, User: ${userId}, Title: ${title}`);
         if (!file) {
+            console.error("[FILE UPLOAD] No file detected in request.");
             return res.status(400).json({ message: "No file uploaded." });
         }
+        console.log(`[FILE UPLOAD] File Metadata: ${file.originalname}, Size: ${file.size}, Type: ${file.mimetype}`);
 
         const [result] = await db.execute(
             "INSERT INTO attachments (project_id, user_id, title, description, filename, file_path, file_size, file_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
@@ -62,16 +65,20 @@ const getFilesByProject = async (req, res, next) => {
 const downloadFile = async (req, res, next) => {
     try {
         const { id } = req.params;
+        console.log(`[FILE DOWNLOAD] Requesting File ID: ${id}`);
 
         const [[file]] = await db.execute("SELECT * FROM attachments WHERE id = ?", [id]);
 
         if (!file) {
+            console.error(`[FILE DOWNLOAD] File ID ${id} not found in database.`);
             return res.status(404).json({ message: "File not found" });
         }
 
         const filePath = path.join(__dirname, '../uploads', file.file_path);
+        console.log(`[FILE DOWNLOAD] Path resolving to: ${filePath}`);
 
         if (!fs.existsSync(filePath)) {
+            console.error(`[FILE DOWNLOAD] File physically missing at: ${filePath}`);
             return res.status(404).json({ message: "File not found on server" });
         }
 

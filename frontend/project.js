@@ -1107,14 +1107,19 @@ async function loadFileComments(fileId) {
 }
 async function handleFileDownload(fileId, filename) {
     try {
+        console.log(`[FILE DOWNLOAD] Initiating for ID: ${fileId}`);
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_BASE_URL}/api/files/download/${fileId}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
 
-        if (!response.ok) throw new Error('Download failed');
+        if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            throw new Error(errData.message || 'Download failed');
+        }
 
         const blob = await response.blob();
+        console.log(`[FILE DOWNLOAD] Blob received, size: ${blob.size}`);
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -1123,7 +1128,9 @@ async function handleFileDownload(fileId, filename) {
         a.click();
         window.URL.revokeObjectURL(url);
         a.remove();
+        showToast('Download started');
     } catch (err) {
+        console.error("[FILE DOWNLOAD] Error:", err);
         showToast('Download failed: ' + err.message, 'error');
     }
 }
@@ -1185,9 +1192,10 @@ async function handleFileUpload(e) {
 
     const formData = new FormData();
     formData.append('file', fileInput.files[0]);
-    formData.append('title', title + (tags ? ` [${tags}]` : ''));
-    formData.append('description', desc);
+    formData.append('title', title || fileInput.files[0].name);
+    formData.append('description', desc || '');
 
+    console.log("[FILE UPLOAD] Preparing payload for project:", currentProjectId);
     try {
         const token = localStorage.getItem('token');
         const res = await fetch(`${API_BASE_URL}/api/projects/${currentProjectId}/files`, {
