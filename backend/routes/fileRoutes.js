@@ -7,17 +7,12 @@ const requireProjectMember = require('../middleware/projectMiddleware');
 const fileController = require('../controllers/fileController');
 
 // Multer Config
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, path.join(__dirname, '../uploads'));
-    },
-    filename: function (req, file, cb) {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, uniqueSuffix + path.extname(file.originalname));
-    }
+// Multer Config: Memory Storage for Ephemeral Reliability (Render Support)
+const storage = multer.memoryStorage();
+const upload = multer({ 
+    storage: storage,
+    limits: { fileSize: 50 * 1024 * 1024 } // 50MB limit
 });
-
-const upload = multer({ storage: storage });
 
 router.post('/projects/:projectId/files', verifyToken, requireProjectMember, upload.single('file'), fileController.uploadFile);
 router.get('/projects/:projectId/files', verifyToken, requireProjectMember, fileController.getFilesByProject);

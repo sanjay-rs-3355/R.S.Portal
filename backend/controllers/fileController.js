@@ -15,7 +15,22 @@ const uploadFile = async (req, res, next) => {
             console.error("[FILE UPLOAD] No file detected in request.");
             return res.status(400).json({ message: "No file uploaded." });
         }
-        console.log(`[FILE UPLOAD] File Metadata: ${file.originalname}, Size: ${file.size}, Type: ${file.mimetype}`);
+
+        // Generate filename since we are using memory storage now
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        const diskFilename = uniqueSuffix + path.extname(file.originalname);
+        const uploadsPath = path.join(__dirname, '../uploads');
+
+        // Critical: Ensure directory exists (even on ephemeral Render restarts)
+        if (!fs.existsSync(uploadsPath)) {
+            console.log(`[FILE UPLOAD] Creating missing uploads directory at: ${uploadsPath}`);
+            fs.mkdirSync(uploadsPath, { recursive: true });
+        }
+
+        const fullPath = path.join(uploadsPath, diskFilename);
+        fs.writeFileSync(fullPath, file.buffer); // Write the buffer to disk manually
+
+        console.log(`[FILE UPLOAD] File metadata: ${file.originalname}, Buffer size: ${file.size}`);
 
         const [result] = await db.execute(
             "INSERT INTO attachments (project_id, user_id, title, description, filename, file_path, file_size, file_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
@@ -25,7 +40,7 @@ const uploadFile = async (req, res, next) => {
                 title || file.originalname,
                 description || null,
                 file.originalname,
-                file.filename,
+                diskFilename,
                 file.size,
                 file.mimetype
             ]
@@ -79,7 +94,9 @@ const downloadFile = async (req, res, next) => {
 
         if (!fs.existsSync(filePath)) {
             console.error(`[FILE DOWNLOAD] File physically missing at: ${filePath}`);
-            return res.status(404).json({ message: "File not found on server" });
+            return res.status(404).json({ 
+                message: "This file was lost during a server restart. On Render, files are not persistent unless stored in the cloud. We recommend integrating a cloud storage provider." 
+            });
         }
 
         res.download(filePath, file.filename);
