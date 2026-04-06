@@ -75,6 +75,13 @@ const PORT = process.env.PORT || 5000;
 server.listen(PORT, async () => {
     console.log(`Server running on port ${PORT}`);
     
+    // Ensure uploads directory exists (Critical for Ephemeral environments like Render)
+    const uploadsPath = path.join(__dirname, 'uploads');
+    if (!fs.existsSync(uploadsPath)) {
+        console.log(`[SYSTEM] Creating missing uploads directory at: ${uploadsPath}`);
+        fs.mkdirSync(uploadsPath, { recursive: true });
+    }
+    
     // Auto-run database migration
     await runMigration();
 
