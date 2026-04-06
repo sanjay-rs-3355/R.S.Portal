@@ -8,7 +8,9 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="auth.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
 </head>
 
 <body>
@@ -42,7 +44,8 @@
                     <div class="input-field reveal" style="animation-delay: 0.4s;">
                         <div class="input-wrapper">
                             <i class="fa-solid fa-lock input-icon"></i>
-                            <input type="password" id="password" placeholder=" " required autocomplete="current-password">
+                            <input type="password" id="password" placeholder=" " required
+                                autocomplete="current-password">
                             <label for="password">Password</label>
                             <i class="fa-regular fa-eye-slash toggle-pw"></i>
                         </div>
@@ -66,11 +69,13 @@
                     </div>
 
                     <div class="social-auth-grid reveal" style="animation-delay: 0.8s;">
-                        <button class="social-token google" onclick="window.location.href = API_BASE_URL + '/api/auth/google'">
+                        <button class="social-token google"
+                            onclick="window.location.href = API_BASE_URL + '/api/auth/google'">
                             <img src="https://img.icons8.com/color/48/google-logo.png" alt="Google">
                             <span>Google</span>
                         </button>
-                        <button class="social-token github" onclick="window.location.href = API_BASE_URL + '/api/auth/github'">
+                        <button class="social-token github"
+                            onclick="window.location.href = API_BASE_URL + '/api/auth/github'">
                             <i class="fa-brands fa-github"></i>
                             <span>GitHub</span>
                         </button>
@@ -87,13 +92,14 @@
         <div class="login-right">
             <div class="parallax-backdrop"></div>
             <div class="prism-overlay"></div>
-            
+
             <div class="hero-content">
                 <div class="glass-hero-card reveal" style="animation-delay: 0.4s;">
                     <div class="hero-badge">Enterprise Collaboration</div>
                     <h3>Collaborate without boundaries.</h3>
-                    <p>Experience the next generation of project management with real-time data and crystal-clear communication.</p>
-                    
+                    <p>Experience the next generation of project management with real-time data and crystal-clear
+                        communication.</p>
+
                     <div class="hero-stats">
                         <div class="stat-item">
                             <span class="stat-val">10k+</span>
@@ -141,7 +147,7 @@
                 localStorage.setItem("token", token);
                 window.history.replaceState({}, document.title, window.location.pathname);
                 showToast("Login successful! Redirecting...");
-                
+
                 setTimeout(() => {
                     const user = parseJwt(token);
                     const role = user ? user.role : 'member';
@@ -201,4 +207,4 @@
 
 </body>
 
-</html>
+</html>

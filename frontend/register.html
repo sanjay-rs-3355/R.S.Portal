@@ -8,70 +8,30 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="auth.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: 'Outfit', sans-serif;
+            font-family: 'Inter', 'Outfit', sans-serif;
             overflow-x: hidden;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            min-height: 100vh;
         }
 
-        .animated-bg {
+        .prism-bg {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100vh;
-            z-index: -1;
-            background: url('https://images.unsplash.com/photo-1497215728101-856f4ea42174?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80');
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: url('https://images.unsplash.com/photo-1497215728101-856f4ea42174?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80');
             background-size: cover;
             background-position: center;
-            background-attachment: fixed;
+            opacity: 0.05;
+            z-index: -1;
+            filter: grayscale(100%);
         }
-
-        .animated-bg::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.45), rgba(139, 92, 246, 0.35), rgba(255, 255, 255, 0.1));
-            backdrop-filter: blur(4px) saturate(160%);
-        }
-
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        .floating-shape {
-            position: absolute;
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
-            z-index: -2;
-            animation: float 25s infinite ease-in-out;
-            pointer-events: none;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
-            33% { transform: translateY(-50vh) rotate(120deg) scale(1.2); }
-            66% { transform: translateY(-20vh) rotate(240deg) scale(0.8); }
-        }
-
-        /* The rest of the glass-card animations are handled in auth.css */
     </style>
 </head>
 
 <body>
-    <div class="animated-bg"></div>
-    <!-- Add some floating shapes for extra premium feel -->
-    <div class="floating-shape" style="width: 100px; height: 100px; left: 10%; bottom: -100px; animation-delay: 0s;"></div>
-    <div class="floating-shape" style="width: 150px; height: 150px; left: 30%; bottom: -150px; animation-delay: 5s;"></div>
-    <div class="floating-shape" style="width: 80px; height: 80px; left: 70%; bottom: -80px; animation-delay: 10s;"></div>
+    <div class="prism-bg"></div>
     
     <div id="toast-container"></div>
 
@@ -90,59 +50,69 @@
                 <p class="glass-subtitle">Join our collaborative community today.</p>
 
                 <form id="registerForm" onsubmit="register(event)">
-                    <div class="input-group">
-                        <label class="glass-label"><i class="fa-regular fa-user"></i> Full Name</label>
-                        <input type="text" id="fullname" class="glass-input" placeholder="Narendra Singh" required>
-                    </div>
-
-                    <div class="input-group">
-                        <label class="glass-label"><i class="fa-regular fa-envelope"></i> E-mail</label>
-                        <input type="email" id="email" class="glass-input" placeholder="name@company.com" required>
-                    </div>
-
-                    <div class="input-row">
+                    <div class="input-container-overhaul">
                         <div class="input-group">
-                            <label class="glass-label"><i class="fa-solid fa-lock"></i> Password</label>
-                            <div class="password-wrapper">
-                                <input type="password" id="password" class="glass-input" placeholder="••••••••" required onkeyup="checkPasswordStrength(this.value)">
-                                <i class="fa-regular fa-eye-slash toggle-pw"></i>
-                            </div>
-                            <div class="strength-meter">
-                                <div id="strength-bar" class="strength-bar"></div>
-                            </div>
-                            <small id="strength-text" class="strength-text">Password strength</small>
-                        </div>
-
-                        <div class="input-group">
-                            <label class="glass-label"><i class="fa-solid fa-shield-halved"></i> Confirm</label>
-                            <div class="password-wrapper">
-                                <input type="password" id="confirm-password" class="glass-input" placeholder="••••••••" required>
-                                <i class="fa-regular fa-eye-slash toggle-pw"></i>
+                            <label class="glass-label">Full Name</label>
+                            <div class="input-wrapper">
+                                <input type="text" id="fullname" class="glass-input" placeholder=" " required>
+                                <label class="floating-label"><i class="fa-regular fa-user"></i> Narendra Singh</label>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="input-row">
                         <div class="input-group">
-                            <label class="glass-label"><i class="fa-solid fa-user-gear"></i> Role</label>
-                            <select id="role" class="glass-input select-input">
-                                <option value="member">Member</option>
-                                <option value="admin">Admin</option>
-                            </select>
+                            <label class="glass-label">E-mail Address</label>
+                            <div class="input-wrapper">
+                                <input type="email" id="email" class="glass-input" placeholder=" " required>
+                                <label class="floating-label"><i class="fa-regular fa-envelope"></i> name@company.com</label>
+                            </div>
                         </div>
 
-                        <div class="input-group">
-                            <label class="glass-label"><i class="fa-solid fa-id-card"></i> Designation</label>
-                            <select id="designation" class="glass-input select-input">
-                                <option value="Full-Stack Developer">Full-Stack Developer</option>
-                                <option value="Frontend Developer">Frontend Developer</option>
-                                <option value="Backend Developer">Backend Developer</option>
-                                <option value="UI-Designer">UI-Designer</option>
-                                <option value="Designer">Designer</option>
-                                <option value="Project Manager">Project Manager</option>
-                                <option value="Tester">Tester</option>
-                                <option value="Member">Member</option>
-                            </select>
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label class="glass-label">Password</label>
+                                <div class="password-wrapper input-wrapper">
+                                    <input type="password" id="password" class="glass-input" placeholder=" " required onkeyup="checkPasswordStrength(this.value)">
+                                    <label class="floating-label"><i class="fa-solid fa-lock"></i> Password</label>
+                                    <i class="fa-regular fa-eye-slash toggle-pw"></i>
+                                </div>
+                                <div class="strength-meter">
+                                    <div id="strength-bar" class="strength-bar"></div>
+                                </div>
+                                <small id="strength-text" class="strength-text">Password strength</small>
+                            </div>
+
+                            <div class="input-group">
+                                <label class="glass-label">Confirm</label>
+                                <div class="password-wrapper input-wrapper">
+                                    <input type="password" id="confirm-password" class="glass-input" placeholder=" " required>
+                                    <label class="floating-label"><i class="fa-solid fa-shield-halved"></i> Confirm</label>
+                                    <i class="fa-regular fa-eye-slash toggle-pw"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label class="glass-label">Role</label>
+                                <select id="role" class="glass-input select-input">
+                                    <option value="member">Member</option>
+                                    <option value="admin">Admin</option>
+                                </select>
+                            </div>
+
+                            <div class="input-group">
+                                <label class="glass-label">Designation</label>
+                                <select id="designation" class="glass-input select-input">
+                                    <option value="Full-Stack Developer">Full-Stack Developer</option>
+                                    <option value="Frontend Developer">Frontend Developer</option>
+                                    <option value="Backend Developer">Backend Developer</option>
+                                    <option value="UI-Designer">UI-Designer</option>
+                                    <option value="Designer">Designer</option>
+                                    <option value="Project Manager">Project Manager</option>
+                                    <option value="Tester">Tester</option>
+                                    <option value="Member">Member</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -150,7 +120,7 @@
 
             <div class="glass-right">
                 <div class="avatar-section">
-                    <div class="glass-label" style="font-size: 16px; margin-bottom: 20px;">Profile Picture</div>
+                    <label class="glass-label" style="justify-content: center; margin-bottom: 24px;">Profile Picture</label>
 
                     <div class="main-avatar" id="avatarPreviewContainer">
                         <i class="fa-regular fa-user" id="defaultAvatarIcon"></i>
@@ -162,7 +132,7 @@
                         <input type="file" id="file-upload" style="display: none;" accept="image/*">
                     </div>
 
-                    <div class="or-divider">or select an avatar</div>
+                    <div class="or-divider">Optional: Select an Avatar</div>
 
                     <div class="avatar-options">
                         <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" class="avatar-option"
@@ -178,28 +148,31 @@
                 </div>
 
                 <div class="action-section">
-                    <button class="btn-primary-lg glass-btn" type="button" onclick="register(event)">
-                        <span>Create Account</span>
+                    <button class="premium-btn-overhaul" type="button" onclick="register(event)">
+                        <span>Register Now</span>
                         <i class="fa-solid fa-arrow-right"></i>
                     </button>
 
-                    <div class="divider">
-                        <span>Quick Register</span>
+                    <div class="auth-divider">
+                        <span>Or Register With</span>
                     </div>
 
-                    <div class="social-login-grid">
-                        <button class="social-btn google" type="button" onclick="window.location.href = '/api/auth/google'">
-                            <img src="https://img.icons8.com/color/48/google-logo.png" alt="Google" style="width: 24px;">
+                    <div class="social-login-grid-overhaul">
+                        <button class="social-btn-premium" type="button" onclick="window.location.href = '/api/auth/google'">
+                            <img src="https://img.icons8.com/color/48/google-logo.png" alt="Google">
+                            <span>Google</span>
                         </button>
-                        <button class="social-btn github" type="button" onclick="window.location.href = '/api/auth/github'">
-                            <i class="fa-brands fa-github" style="font-size: 20px;"></i>
+                        <button class="social-btn-premium" type="button" onclick="window.location.href = '/api/auth/github'">
+                            <i class="fa-brands fa-github" style="color: #333;"></i>
+                            <span>GitHub</span>
                         </button>
-                        <button class="social-btn facebook" type="button" onclick="window.location.href = '/api/auth/facebook'">
-                            <i class="fa-brands fa-facebook-f" style="font-size: 20px; color: #1877F2;"></i>
+                        <button class="social-btn-premium" type="button" onclick="window.location.href = '/api/auth/facebook'">
+                            <i class="fa-brands fa-facebook" style="color: #1877F2;"></i>
+                            <span>Facebook</span>
                         </button>
                     </div>
 
-                    <p class="login-link">Already a member? <a href="index.html">Log in</a></p>
+                    <p class="login-link">Already have an account? <a href="index.html">Sign In</a></p>
                 </div>
             </div>
         </div>
