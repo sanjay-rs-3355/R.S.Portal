@@ -39,14 +39,14 @@
 }
 
 .card-box {
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    border-radius: 24px;
-    padding: 24px;
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.03);
-    transition: all 0.3s ease;
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    padding: 28px;
+    box-shadow: var(--shadow-md);
+    transition: var(--transition-bounce);
     position: relative;
     overflow: hidden;
     display: flex;
@@ -55,8 +55,10 @@
 }
 
 .card-box:hover {
-    background: rgba(255, 255, 255, 0.9);
-    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.05);
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: var(--shadow-lg), 0 20px 40px -20px rgba(99, 102, 241, 0.3);
+    transform: translateY(-10px) scale(1.01);
+    border-color: rgba(99, 102, 241, 0.3);
 }
 
 .card-box::before {
@@ -685,12 +687,12 @@
 }
 
 .stat-card-modern:hover {
-    transform: translateY(-8px) scale(1.03);
+    transform: translateY(-12px) scale(1.04);
     background: #ffffff;
     box-shadow: 
-        0 25px 50px -12px rgba(99, 102, 241, 0.15),
-        0 10px 20px -10px rgba(0, 0, 0, 0.05);
-    border-color: rgba(99, 102, 241, 0.3);
+        0 30px 60px -12px rgba(99, 102, 241, 0.25),
+        0 18px 36px -18px rgba(0, 0, 0, 0.1);
+    border-color: rgba(99, 102, 241, 0.4);
 }
 
 .stat-card-modern:hover::before {

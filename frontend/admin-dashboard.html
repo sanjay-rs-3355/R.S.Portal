@@ -18,6 +18,15 @@
 </head>
 
 <body>
+    <!-- Premium Preloader -->
+    <div id="preloader" class="preloader">
+        <div class="loader-logo">
+            <img src="assets/logo.jpg" alt="Logo">
+        </div>
+        <div class="loader-track">
+            <div class="loader-bar"></div>
+        </div>
+    </div>
 
     <div class="layout">
         <!-- Sidebar -->
@@ -52,7 +61,7 @@
         <div class="main">
             <!-- Topbar -->
             <div class="topbar">
-                <div class="top-left">
+                <div class="top-left reveal" style="animation-delay: 0.1s;">
                     <div class="breadcrumb">Pages / <span class="crumb-active">Dashboard</span></div>
                     <div class="page-subtitle">Welcome back, <span id="username-display">User</span></div>
                 </div>
@@ -98,7 +107,7 @@
             <div class="dashboard-area" id="dashboard-section">
 
                 <!-- WELCOME BANNER -->
-                <div class="dash-welcome-banner">
+                <div class="dash-welcome-banner reveal">
                     <div>
                         <h2 class="dash-welcome-title">Admin Dashboard</h2>
                         <p class="dash-welcome-sub">Welcome back, <strong id="welcome-name">Admin</strong> — here's
@@ -108,7 +117,7 @@
                 </div>
 
                 <!-- OVERVIEW STATS (4 Cards) -->
-                <div class="stats-grid-4">
+                <div class="stats-grid-4 reveal-staggered">
                     <!-- Project Card -->
                     <div class="stat-card-modern accent-blue reveal">
                         <div class="stat-content">
@@ -166,7 +175,7 @@
                 </div>
 
                 <!-- TASK PRIORITY ROW -->
-                <div class="stats-grid-4">
+                <div class="stats-grid-4 reveal-staggered">
                     <div class="stat-card-sm priority-card-high">
                         <div class="status-icon warning"><i class="fa-solid fa-fire"></i></div>
                         <div>
@@ -358,6 +367,7 @@
 
 
     <script src="app.js"></script>
+    <script src="animations.js"></script>
     <script src="dashboard-common.js"></script>
     <script src="admin-dashboard.js"></script>
 </body>

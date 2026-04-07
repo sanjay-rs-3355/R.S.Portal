@@ -31,12 +31,27 @@
 </head>
 
 <body>
-    <div class="prism-bg"></div>
+    <!-- Premium Preloader -->
+    <div id="preloader" class="preloader">
+        <div class="loader-logo">
+            <img src="assets/logo.jpg" alt="Logo">
+        </div>
+        <div class="loader-track">
+            <div class="loader-bar"></div>
+        </div>
+    </div>
+
+    <!-- Decorative Flux Background -->
+    <div class="flux-container">
+        <div class="flux-blob flux-1"></div>
+        <div class="flux-blob flux-2"></div>
+        <div class="flux-blob flux-3"></div>
+    </div>
     
     <div id="toast-container"></div>
 
     <div class="register-body">
-        <div class="glass-card">
+        <div class="glass-card reveal">
             <!-- Close button -->
             <a href="index.html" class="close-btn" title="Back to Login"><i class="fa-solid fa-xmark"></i></a>
 
@@ -46,11 +61,11 @@
                     <h1>R.S.Portal</h1>
                 </div>
 
-                <h2 class="glass-title">Create Account</h2>
-                <p class="glass-subtitle">Join our collaborative community today.</p>
+                <h2 class="glass-title reveal" style="animation-delay: 0.1s;">Create Account</h2>
+                <p class="glass-subtitle reveal" style="animation-delay: 0.2s;">Join our collaborative community today.</p>
 
                 <form id="registerForm" onsubmit="register(event)">
-                    <div class="input-container-overhaul">
+                    <div class="input-container-overhaul reveal-staggered" style="animation-delay: 0.3s;">
                         <div class="input-group">
                             <label class="glass-label">Full Name</label>
                             <div class="input-wrapper">
@@ -119,7 +134,7 @@
             </div>
 
             <div class="glass-right">
-                <div class="avatar-section">
+                <div class="avatar-section reveal" style="animation-delay: 0.4s;">
                     <label class="glass-label" style="justify-content: center; margin-bottom: 24px;">Profile Picture</label>
 
                     <div class="main-avatar" id="avatarPreviewContainer">
@@ -179,6 +194,7 @@
     </div>
 
     <script src="app.js"></script>
+    <script src="animations.js"></script>
     <script>
         let currentAvatarUrl = "";
 

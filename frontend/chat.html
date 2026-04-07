@@ -17,6 +17,16 @@
 </head>
 
 <body>
+    <!-- Premium Preloader -->
+    <div id="preloader" class="preloader">
+        <div class="loader-logo">
+            <img src="assets/logo.jpg" alt="Logo">
+        </div>
+        <div class="loader-track">
+            <div class="loader-bar"></div>
+        </div>
+    </div>
+
     <div id="toast-container"></div>
 
     <div class="layout">
@@ -46,7 +56,7 @@
         <div class="main">
             <!-- Topbar -->
             <div class="topbar">
-                <div class="top-left">
+                <div class="top-left reveal" style="animation-delay: 0.1s;">
                     <div class="breadcrumb">Pages / <span class="crumb-active">Chat</span></div>
                     <div class="page-subtitle">Team Communication</div>
                 </div>
@@ -152,6 +162,7 @@
     </div>
 
     <script src="app.js"></script>
+    <script src="animations.js"></script>
     <script>
         // Important: token and socket are already defined in app.js
         // We need to use the same socket instance from app.js

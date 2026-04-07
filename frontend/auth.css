@@ -1,5 +1,47 @@
 /* ================= PREMIUM AUTH SYSTEM ================= */
 
+/* Decorative Flux Blobs */
+.flux-container {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    z-index: 1;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.flux-blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.15;
+    animation: fluxFlow 20s infinite alternate cubic-bezier(0.45, 0, 0.55, 1);
+}
+
+.flux-1 {
+    width: 600px; height: 600px;
+    background: #6366f1;
+    top: -10%; left: -10%;
+}
+
+.flux-2 {
+    width: 500px; height: 500px;
+    background: #8b5cf6;
+    bottom: -5%; right: -5%;
+    animation-delay: -5s;
+}
+
+.flux-3 {
+    width: 400px; height: 400px;
+    background: #f43f5e;
+    top: 40%; left: 30%;
+    animation-delay: -10s;
+}
+
+@keyframes fluxFlow {
+    0% { transform: translate(0, 0) scale(1) rotate(0deg); }
+    100% { transform: translate(100px, 50px) scale(1.1) rotate(20deg); }
+}
+
 /* Layout & Container */
 .login-container {
     display: flex;
@@ -218,6 +260,21 @@
     cursor: pointer;
     transition: var(--transition-smooth);
     box-shadow: 0 12px 24px -6px rgba(99, 102, 241, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+    position: relative;
+    overflow: hidden;
+}
+
+.premium-btn::after {
+    content: '';
+    position: absolute;
+    top: -50%; left: -100%; width: 50%; height: 200%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transform: rotate(25deg);
+    transition: 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.premium-btn:hover::after {
+    left: 200%;
 }
 
 .premium-btn:hover {

@@ -14,6 +14,23 @@
 </head>
 
 <body>
+    <!-- Premium Preloader -->
+    <div id="preloader" class="preloader">
+        <div class="loader-logo">
+            <img src="assets/logo.jpg" alt="Logo">
+        </div>
+        <div class="loader-track">
+            <div class="loader-bar"></div>
+        </div>
+    </div>
+
+    <!-- Decorative Flux Background -->
+    <div class="flux-container">
+        <div class="flux-blob flux-1"></div>
+        <div class="flux-blob flux-2"></div>
+        <div class="flux-blob flux-3"></div>
+    </div>
+
     <div id="toast-container"></div>
 
     <div class="login-container">
@@ -117,6 +134,7 @@
     </div>
 
     <script src="app.js"></script>
+    <script src="animations.js"></script>
     <script>
         // Toggle Password Visibility
         document.querySelector('.toggle-pw').addEventListener('click', function () {

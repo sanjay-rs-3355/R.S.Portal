@@ -289,6 +289,16 @@
 </head>
 
 <body>
+    <!-- Premium Preloader -->
+    <div id="preloader" class="preloader">
+        <div class="loader-logo">
+            <img src="assets/logo.jpg" alt="Logo">
+        </div>
+        <div class="loader-track">
+            <div class="loader-bar"></div>
+        </div>
+    </div>
+
     <div id="toast-container"></div>
     <div class="layout">
         <!-- Sidebar -->
@@ -321,7 +331,7 @@
 
         <div class="main">
             <div class="topbar">
-                <div class="top-left">
+                <div class="top-left reveal" style="animation-delay: 0.1s;">
                     <div class="breadcrumb">Pages / <span class="crumb-active">Profile</span></div>
                     <div class="page-subtitle">Personal Settings</div>
                 </div>
@@ -365,7 +375,7 @@
 
             <div class="dashboard-area" style="padding: 35px 40px;">
                 <!-- WELCOME BANNER -->
-                <div class="dash-welcome-banner" style="margin-bottom: 35px; min-height: 120px;">
+                <div class="dash-welcome-banner reveal" style="margin-bottom: 35px; min-height: 120px;">
                     <div>
                         <h2 class="dash-welcome-title">User Account Portfolio</h2>
                         <p class="dash-welcome-sub">Manage your professional identity and workspace preferences</p>
@@ -467,6 +477,7 @@
 
 
     <script src="app.js"></script>
+    <script src="animations.js"></script>
     <script src="profile.js"></script>
 </body>
 
