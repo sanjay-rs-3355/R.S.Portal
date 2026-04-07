@@ -1,6 +1,10 @@
 // Set this to your Render backend URL when deploying frontend on Vercel
 // Example: const API_BASE_URL = "https://your-app.onrender.com";
-const API_BASE_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" ? "" : ""; 
+// Set this to your Render backend URL when deploying frontend on Vercel
+// Example: const API_BASE_URL = "https://your-app.onrender.com";
+const API_BASE_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" 
+    ? "" 
+    : "https://your-backend-api.onrender.com"; // UPDATE THIS for production
 
 
 // Global error handler for debugging
@@ -616,9 +620,41 @@ function populateTopbarUser() {
     }
 }
 
+
+/**
+ * Global Token and Error Handler for OAuth Redirects
+ */
+function handleAuthParams() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    const error = urlParams.get('error');
+
+    if (token) {
+        localStorage.setItem("token", token);
+        // Clean the URL
+        const cleanUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, cleanUrl);
+
+        showToast("Login successful! Redirecting...");
+        
+        setTimeout(() => {
+            const user = parseJwt(token);
+            if (user) {
+                window.location.href = user.role === 'admin' ? "admin-dashboard.html" : "member-dashboard.html";
+            }
+        }, 1500);
+    } else if (error) {
+        showToast("Authentication failed: " + error.replace(/_/g, ' '), "error");
+        // Clean the URL
+        const cleanUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, cleanUrl);
+    }
+}
+
 // Initialize global UI features on DOM content load
 document.addEventListener('DOMContentLoaded', () => {
     initScrollReveal();
+    handleAuthParams();
 });
 
 

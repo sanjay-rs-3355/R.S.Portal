@@ -62,7 +62,8 @@ const setupPassport = () => {
             clientID: process.env.GOOGLE_CLIENT_ID,
             clientSecret: process.env.GOOGLE_CLIENT_SECRET,
             callbackURL: "/api/auth/google/callback",
-            passReqToCallback: true
+            passReqToCallback: true,
+            proxy: true
         }, (req, accessToken, refreshToken, profile, cb) => handleSocialLogin(profile, cb, 'google')));
     }
 
@@ -72,7 +73,8 @@ const setupPassport = () => {
             clientID: process.env.GITHUB_CLIENT_ID,
             clientSecret: process.env.GITHUB_CLIENT_SECRET,
             callbackURL: "/api/auth/github/callback",
-            scope: ['user:email']
+            scope: ['user:email'],
+            proxy: true
         }, (accessToken, refreshToken, profile, cb) => handleSocialLogin(profile, cb, 'github')));
     }
 
@@ -82,7 +84,8 @@ const setupPassport = () => {
             clientID: process.env.FACEBOOK_APP_ID,
             clientSecret: process.env.FACEBOOK_APP_SECRET,
             callbackURL: "/api/auth/facebook/callback",
-            profileFields: ['id', 'displayName', 'emails']
+            profileFields: ['id', 'displayName', 'emails'],
+            proxy: true
         }, (accessToken, refreshToken, profile, cb) => handleSocialLogin(profile, cb, 'facebook')));
     }
 };

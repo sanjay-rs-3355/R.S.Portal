@@ -150,32 +150,7 @@
             }
         });
 
-        // OAuth Token Handler on Load
-        document.addEventListener("DOMContentLoaded", () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const token = urlParams.get('token');
-            const error = urlParams.get('error');
-            const registered = urlParams.get('registered');
-
-            if (registered) {
-                showToast("Account created successfully! Please log in.");
-            }
-
-            if (token) {
-                localStorage.setItem("token", token);
-                window.history.replaceState({}, document.title, window.location.pathname);
-                showToast("Login successful! Redirecting...");
-
-                setTimeout(() => {
-                    const user = parseJwt(token);
-                    const role = user ? user.role : 'member';
-                    window.location.href = role === 'admin' ? "admin-dashboard.html" : "member-dashboard.html";
-                }, 1000);
-            } else if (error) {
-                showToast("Login failed: " + error.replace(/_/g, ' '), "error");
-                window.history.replaceState({}, document.title, window.location.pathname);
-            }
-        });
+        // Password visibility toggler and other local Page UI logic should stay here
 
         async function login() {
             const email = document.getElementById("email").value.trim();
