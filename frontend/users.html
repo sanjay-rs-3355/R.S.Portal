@@ -203,12 +203,10 @@
                             <button class="filter-tab" onclick="filterUsers('member')">Members</button>
                         </div>
                         <div style="display: flex; gap: 15px; align-items: center;">
-                            <div class="search-wrapper-sm"
-                                style="background: #f1f5f9; padding: 8px 15px; border-radius: 8px; display: flex; align-items: center; gap: 10px; width: 260px;">
-                                <i class="fa-solid fa-magnifying-glass" style="color: #94a3b8;"></i>
-                                <input type="text" id="userListSearch" placeholder="Search by name or email..."
-                                    onkeyup="searchUsersTable()"
-                                    style="border: none; background: transparent; outline: none; width: 100%; color: #334155;">
+                            <div class="search-wrapper">
+                                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                                <input type="text" id="userListSearch" class="search" placeholder="Search by name or email..."
+                                    onkeyup="searchUsersTable()">
                             </div>
                             <div
                                 style="display: flex; align-items: center; gap: 10px; background: #f1f5f9; padding: 8px 15px; border-radius: 8px;">
