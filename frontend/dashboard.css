@@ -4,14 +4,13 @@
 .dashboard-area {
     padding: 32px 36px;
     width: 100%;
-    max-width: 1600px;
     margin: 0 auto;
     display: flex;
     flex-direction: column;
-    gap: 30px;
+    gap: 24px;
     background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.03), transparent 40%),
         radial-gradient(circle at bottom left, rgba(79, 70, 229, 0.02), transparent 40%);
-    min-height: 100vh;
+    min-height: calc(100vh - 100px);
 }
 
 .page-title {
@@ -537,10 +536,11 @@
     align-items: center;
     background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);
     border-radius: 32px;
-    padding: 36px 44px;
+    padding: 28px 40px;
     color: white;
     position: relative;
     overflow: hidden;
+    min-height: 140px;
     box-shadow: 
         0 30px 60px -15px rgba(79, 70, 229, 0.4),
         0 0 0 1px rgba(255, 255, 255, 0.1) inset;
@@ -607,6 +607,7 @@
     color: white;
     text-align: right;
     white-space: nowrap;
+    align-self: flex-start;
 }
 
 /* Grids */
