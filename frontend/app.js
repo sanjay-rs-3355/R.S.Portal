@@ -74,7 +74,7 @@ function parseJwt(token) {
 function requireAuth() {
     const token = localStorage.getItem("token");
     if (!token) {
-        window.location.href = "index.html";
+    window.location.href = "index";
         return null;
     }
     return token;
@@ -118,10 +118,7 @@ function handleDashboardAccess(expectedRole, allowAll = false) {
     // Strict Role Check
     if (user.role !== expectedRole) {
         // Redirect to their correct dashboard
-        window.location.href =
-            user.role === 'admin'
-                ? 'admin-dashboard.html'
-                : 'member-dashboard.html';
+        window.location.href = user.role === 'admin' ? 'admin-dashboard' : 'member-dashboard';
         return null;
     }
     return user;
@@ -136,7 +133,7 @@ function logout() {
 async function apiGet(endpoint) {
     const token = localStorage.getItem("token");
     if (!token) {
-        window.location.href = "index.html";
+    window.location.href = "index";
         return null;
     }
 
@@ -167,7 +164,7 @@ async function apiGet(endpoint) {
 async function apiRequest(endpoint, method = 'GET', data = null) {
     const token = localStorage.getItem("token");
     if (!token) {
-        window.location.href = "index.html";
+    window.location.href = "index";
         return null;
     }
 
@@ -444,17 +441,17 @@ function setupNavigation() {
     const currentPath = window.location.pathname;
     const page = currentPath.split("/").pop();
 
-    if (page === 'admin-dashboard.html' || page === 'member-dashboard.html') navDashboard?.classList.add('active');
-    if (page === 'project.html') navProjects?.classList.add('active');
-    if (page === 'tasks.html') navTasks?.classList.add('active');
-    if (page === 'users.html') navUsers?.classList.add('active');
-    if (page === 'db-manager.html') navDbManager?.classList.add('active');
+    if (page === 'admin-dashboard' || page === 'member-dashboard') navDashboard?.classList.add('active');
+    if (page === 'project') navProjects?.classList.add('active');
+    if (page === 'tasks') navTasks?.classList.add('active');
+    if (page === 'users') navUsers?.classList.add('active');
+    if (page === 'db-manager') navDbManager?.classList.add('active');
 
     if (navDashboard) navDashboard.addEventListener('click', goToDashboard);
-    if (navProjects) navProjects.addEventListener('click', () => window.location.href = 'project.html');
-    if (navTasks) navTasks.addEventListener('click', () => window.location.href = 'tasks.html');
-    if (navUsers) navUsers.addEventListener('click', () => window.location.href = 'users.html');
-    if (navDbManager) navDbManager.addEventListener('click', () => window.location.href = 'db-manager.html');
+    if (navProjects) navProjects.addEventListener('click', () => window.location.href = 'project');
+    if (navTasks) navTasks.addEventListener('click', () => window.location.href = 'tasks');
+    if (navUsers) navUsers.addEventListener('click', () => window.location.href = 'users');
+    if (navDbManager) navDbManager.addEventListener('click', () => window.location.href = 'db-manager');
 
     // Role-based visibility for Users link
     const token = localStorage.getItem("token");
@@ -636,7 +633,7 @@ function handleAuthParams() {
         setTimeout(() => {
             const user = parseJwt(token);
             if (user) {
-                window.location.href = user.role === 'admin' ? "admin-dashboard.html" : "member-dashboard.html";
+                window.location.href = user.role === 'admin' ? "admin-dashboard" : "member-dashboard";
             }
         }, 1500);
     } else if (error) {
@@ -680,12 +677,12 @@ function toggleChat() {
 function goToDashboard() {
     const token = localStorage.getItem("token");
     if (!token) {
-        window.location.href = "index.html";
+    window.location.href = "index";
         return;
     }
     const user = parseJwt(token);
     if (user) {
-        window.location.href = user.role === 'admin' ? 'admin-dashboard.html' : 'member-dashboard.html';
+        window.location.href = user.role === 'admin' ? 'admin-dashboard' : 'member-dashboard';
     } else {
         window.location.href = 'index.html';
     }
