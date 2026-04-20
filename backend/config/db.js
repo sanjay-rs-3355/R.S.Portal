@@ -9,8 +9,11 @@ const db = mysql.createPool({
     database: process.env.DB_NAME || 'collaboration_portal',
     port: process.env.DB_PORT || 3306,
     waitForConnections: true,
-    connectionLimit: 10,
+    connectionLimit: 20, // Increased for stability
     queueLimit: 0,
+    connectTimeout: 10000, // 10 seconds timeout for wake-up
+    enableKeepAlive: true,
+    keepAliveInitialDelay: 10000,
     ssl: {
         rejectUnauthorized: false
     }
