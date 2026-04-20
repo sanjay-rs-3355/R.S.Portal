@@ -21,11 +21,8 @@ app.use(passport.initialize());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// 1. Static Files with Clean URLs (no .html extension needed)
-app.use(express.static(path.join(__dirname, '../frontend'), { 
-    extensions: ['html'],
-    index: 'index.html'
-}));
+// 1. Static Files (Move up so index.html is served first)
+app.use(express.static(path.join(__dirname, '../frontend')));
 
 const server = http.createServer(app);
 const io = new Server(server, {
@@ -51,13 +48,12 @@ app.use('/api/notifications', require('./routes/notificationRoutes'));
 app.use('/api/meetings', require('./routes/meetingRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
 
-// 3. Frontend Fallback (SPA Support)
-app.get('*', (req, res, next) => {
-    // If it's an API route, let it fall through to 404 or error handler
-    if (req.path.startsWith('/api')) return next();
-    
+// 3. Root Fallback (only if static fails)
+app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/index.html'), (err) => {
-        if (err) next();
+        if (err) {
+            res.send('Collaboration Portal Backend Running 🚀');
+        }
     });
 });
 
