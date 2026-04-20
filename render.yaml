@@ -1,23 +1,46 @@
 services:
-  - type: web
-    name: collab-portal
-    env: node
-    buildCommand: npm run build
-    startCommand: npm start
+  # MySQL Private Service
+  - type: pvt
+    name: collaboration-db
+    env: docker
+    dockerfilePath: Dockerfile.mysql
+    region: ohio # Change as needed
+    plan: free # Only if using paid, change to 'starter' or higher for disks
     envVars:
-      - key: NODE_ENV
-        value: production
-      - key: PORT
-        value: 5000
+      - key: MYSQL_DATABASE
+        value: collaboration_portal
+      - key: MYSQL_USER
+        fromContext: db_user
+      - key: MYSQL_PASSWORD
+        fromContext: db_password
+      - key: MYSQL_ROOT_PASSWORD
+        fromContext: db_root_password
+    disk:
+      name: mysql-data
+      mountPath: /var/lib/mysql
+      sizeGB: 10
+
+  # Node.js Web Service (Backend)
+  - type: web
+    name: collaboration-portal-api
+    env: node
+    region: ohio
+    plan: free
+    buildCommand: npm install && cd backend && npm install
+    startCommand: cd backend && node server.js
+    envVars:
       - key: DB_HOST
-        sync: false
+        fromService:
+          type: pvt
+          name: collaboration-db
+          property: host
       - key: DB_USER
-        sync: false
+        fromContext: db_user
       - key: DB_PASSWORD
-        sync: false
+        fromContext: db_password
       - key: DB_NAME
-        sync: false
-      - key: DB_PORT
-        sync: false
+        value: collaboration_portal
       - key: JWT_SECRET
         generateValue: true
+      - key: PORT
+        value: 5000

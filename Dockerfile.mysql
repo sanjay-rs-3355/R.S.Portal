@@ -1,0 +1,6 @@
+FROM mysql:8.0
+
+# You can add custom initialization scripts here if needed
+# COPY ./Data_base1.sql /docker-entrypoint-initdb.d/
+
+EXPOSE 3306
