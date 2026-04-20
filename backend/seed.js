@@ -298,7 +298,7 @@ async function seedDatabase() {
             const createdBy = i % 2 === 0 ? adminId : thilakId;
             const [result] = await db.query(
                 'INSERT INTO projects (title, description, created_by, is_deleted, last_activity_text, last_activity_type, last_activity_at) VALUES (?, ?, ?, 0, ?, ?, NOW())',
-                [p.title, p.description, createdBy, 'Project created', 'general']
+                [p.title, p.description, createdBy, 'Initial Project Setup', 'general']
             );
             projectIds.push(result.insertId);
         }

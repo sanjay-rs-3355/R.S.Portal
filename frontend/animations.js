@@ -6,7 +6,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     initScrollReveals();
     initMagneticButtons();
-    initCustomCursor();
+    // initCustomCursor(); // Removed as per user request
     initParallax();
     initPreloader();
 });
@@ -72,49 +72,7 @@ function initMagneticButtons() {
     });
 }
 
-/**
- * Modern Custom Cursor (Subtle Glow)
- */
-function initCustomCursor() {
-    const cursor = document.createElement('div');
-    cursor.className = 'custom-cursor';
-    document.body.appendChild(cursor);
 
-    const cursorFollower = document.createElement('div');
-    cursorFollower.className = 'cursor-follower';
-    document.body.appendChild(cursorFollower);
-
-    let mouseX = 0, mouseY = 0;
-    let posX = 0, posY = 0;
-    let followerX = 0, followerY = 0;
-
-    document.addEventListener('mousemove', (e) => {
-        mouseX = e.clientX;
-        mouseY = e.clientY;
-        
-        cursor.style.transform = `translate3d(${mouseX}px, ${mouseY}px, 0)`;
-    });
-
-    // Smooth follower animation
-    function animate() {
-        posX += (mouseX - posX) * 0.15;
-        posY += (mouseY - posY) * 0.15;
-        
-        cursorFollower.style.transform = `translate3d(${posX}px, ${posY}px, 0)`;
-        requestAnimationFrame(animate);
-    }
-    animate();
-
-    // Hover interactions
-    document.querySelectorAll('a, button, [role="button"], .user').forEach(el => {
-        el.addEventListener('mouseenter', () => {
-            cursorFollower.classList.add('cursor-active');
-        });
-        el.addEventListener('mouseleave', () => {
-            cursorFollower.classList.remove('cursor-active');
-        });
-    });
-}
 
 /**
  * Parallax Background Effect
