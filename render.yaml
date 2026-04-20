@@ -1,6 +1,6 @@
 services:
   # MySQL Private Service
-  - type: pvt
+  - type: pserv
     name: collaboration-db
     env: docker
     dockerfilePath: Dockerfile.mysql
@@ -31,7 +31,7 @@ services:
     envVars:
       - key: DB_HOST
         fromService:
-          type: pvt
+          type: pserv
           name: collaboration-db
           property: host
       - key: DB_USER

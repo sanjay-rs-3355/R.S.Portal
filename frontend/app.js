@@ -1,10 +1,6 @@
-// Set this to your Render backend URL when deploying frontend on Vercel
-// Example: const API_BASE_URL = "https://your-app.onrender.com";
-// Set this to your Render backend URL when deploying frontend on Vercel
-// Example: const API_BASE_URL = "https://your-app.onrender.com";
-const API_BASE_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" 
-    ? "" 
-    : "https://collab-portal-backend.onrender.com"; // UPDATED for Render deployment
+// Use relative API paths when frontend and backend are served together.
+// If you deploy the frontend separately, update this to the backend URL.
+const API_BASE_URL = "";
 
 
 // Global error handler for debugging

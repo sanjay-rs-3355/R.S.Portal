@@ -1,6 +1,11 @@
 const jwt = require('jsonwebtoken');
 const db = require('../config/db');
 const logActivity = require('../utils/activityLogger');
+const JWT_SECRET = process.env.JWT_SECRET || 'default_dev_jwt_secret_change_this';
+
+if (!process.env.JWT_SECRET) {
+    console.warn('[WARNING] JWT_SECRET is not defined in .env. Socket authentication will use a fallback development secret.');
+}
 
 module.exports = (io) => {
 
@@ -15,7 +20,7 @@ module.exports = (io) => {
         const token = socket.handshake.auth.token;
         if (!token) return next(new Error("Unauthorized"));
         try {
-            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            const decoded = jwt.verify(token, JWT_SECRET);
             socket.user = decoded;
             next();
         } catch (error) {
