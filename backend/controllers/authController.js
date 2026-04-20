@@ -5,6 +5,11 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const logActivity = require('../utils/activityLogger');
 
+const JWT_SECRET = process.env.JWT_SECRET || 'default_dev_jwt_secret_change_this';
+
+if (!process.env.JWT_SECRET) {
+    console.warn('[WARNING] JWT_SECRET is not defined in .env. Using fallback secret for local development.');
+}
 
 // 1️⃣ REGISTER
 exports.register = async (req, res, next) => {
@@ -81,8 +86,8 @@ exports.login = async (req, res, next) => {
 
         // Generate Token
         const token = jwt.sign(
-            { id: user.id, name: user.name, role: user.role, email: user.email, designation: user.designation }, // Added email and designation to token
-            process.env.JWT_SECRET,
+            { id: user.id, name: user.name, role: user.role, email: user.email, designation: user.designation },
+            JWT_SECRET,
             { expiresIn: '24h' }
         );
 

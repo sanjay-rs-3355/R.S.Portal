@@ -34,12 +34,17 @@ router.post('/login', validateLogin, authController.login);
 
 const passport = require('passport');
 const jwt = require('jsonwebtoken');
+const JWT_SECRET = process.env.JWT_SECRET || 'default_dev_jwt_secret_change_this';
+
+if (!process.env.JWT_SECRET) {
+    console.warn('[WARNING] JWT_SECRET is not defined in .env. OAuth token generation will use a fallback development secret.');
+}
 
 // OAuth helper token generator
 const generateOAuthToken = (user, res, req) => {
     const token = jwt.sign(
         { id: user.id, name: user.name, role: user.role, email: user.email, designation: user.designation, profile_image: user.profile_image },
-        process.env.JWT_SECRET,
+        JWT_SECRET,
         { expiresIn: '24h' }
     );
     

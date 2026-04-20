@@ -74,6 +74,10 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, async () => {
     console.log(`Server running on port ${PORT}`);
+
+    if (!process.env.JWT_SECRET) {
+        console.warn('[WARNING] JWT_SECRET is not configured. The app will use a default development secret.');
+    }
     
     // Ensure uploads directory exists (Critical for Ephemeral environments like Render)
     const uploadsPath = path.join(__dirname, 'uploads');

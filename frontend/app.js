@@ -4,7 +4,7 @@
 // Example: const API_BASE_URL = "https://your-app.onrender.com";
 const API_BASE_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" 
     ? "" 
-    : "https://your-backend-api.onrender.com"; // UPDATE THIS for production
+    : "https://collab-portal-backend.onrender.com"; // UPDATED for Render deployment
 
 
 // Global error handler for debugging

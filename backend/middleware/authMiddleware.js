@@ -2,6 +2,8 @@
 
 const jwt = require('jsonwebtoken');
 
+const JWT_SECRET = process.env.JWT_SECRET || 'default_dev_jwt_secret_change_this';
+
 const verifyToken = (req, res, next) => {
     const authHeader = req.headers.authorization;
 
@@ -12,7 +14,7 @@ const verifyToken = (req, res, next) => {
     const token = authHeader.split(' ')[1];
 
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const decoded = jwt.verify(token, JWT_SECRET);
         req.user = decoded; // attach user info to request
         next();
     } catch (error) {
