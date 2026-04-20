@@ -353,48 +353,8 @@ textarea,
     visibility: hidden;
 }
 
-/* ================= CUSTOM CURSOR v1.0 ================= */
-@media (hover: hover) and (pointer: fine) {
-    body {
-        cursor: none !important;
-    }
+/* ================= CUSTOM CURSOR REMOVED ================= */
 
-    .custom-cursor {
-        position: fixed;
-        top: 0; left: 0;
-        width: var(--cursor-size);
-        height: var(--cursor-size);
-        background: var(--primary-color);
-        border-radius: 50%;
-        pointer-events: none;
-        z-index: 9999;
-        mix-blend-mode: normal;
-        transform: translate3d(x, y, 0);
-    }
-
-    .cursor-follower {
-        position: fixed;
-        top: -calc(var(--cursor-follow-size) / 2);
-        left: -calc(var(--cursor-follow-size) / 2);
-        width: var(--cursor-follow-size);
-        height: var(--cursor-follow-size);
-        border: 1.5px solid var(--primary-glow);
-        border-radius: 50%;
-        pointer-events: none;
-        z-index: 9998;
-        transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1), height 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s;
-        will-change: transform;
-    }
-
-    .cursor-active {
-        width: 80px;
-        height: 80px;
-        background: rgba(99, 102, 241, 0.08);
-        border-color: rgba(99, 102, 241, 0.4);
-        top: -40px;
-        left: -40px;
-    }
-}
 
 /* ================= PREMIUM PRELOADER ================= */
 .preloader {
